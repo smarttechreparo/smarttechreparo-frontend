@@ -1,5 +1,79 @@
-// Adicione esta linha no topo do seu arquivo renderer.js
+// ============ CONFIGURAÇÃO WEB (VERCEL & RAILWAY) ==========
 const API_URL = 'https://smarttechreparo-backend-production.up.railway.app/api';
+
+// Ponte de compatibilidade: Transforma chamadas do Electron em requisições HTTP Fetch puras
+window.electronAPI = {
+    // Clientes
+    getClients: async () => fetch(`${API_URL}/clients`).then(res => res.json()).then(r => r.data || []),
+    saveClient: async (client) => fetch(`${API_URL}/clients`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(client) }).then(res => res.json()),
+    deleteClient: async (id) => fetch(`${API_URL}/clients/${id}`, { method: 'DELETE' }).then(res => res.json()),
+
+    // Fornecedores
+    getSuppliers: async () => fetch(`${API_URL}/suppliers`).then(res => res.json()).then(r => r.data || []),
+    saveSupplier: async (supplier) => fetch(`${API_URL}/suppliers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(supplier) }).then(res => res.json()),
+    deleteSupplier: async (id) => fetch(`${API_URL}/suppliers/${id}`, { method: 'DELETE' }).then(res => res.json()),
+
+    // Peças
+    getParts: async () => fetch(`${API_URL}/parts`).then(res => res.json()).then(r => r.data || []),
+    savePart: async (part) => fetch(`${API_URL}/parts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(part) }).then(res => res.json()),
+    deletePart: async (id) => fetch(`${API_URL}/parts/${id}`, { method: 'DELETE' }).then(res => res.json()),
+
+    // Serviços
+    getServices: async () => fetch(`${API_URL}/services`).then(res => res.json()).then(r => r.data || []),
+    saveService: async (service) => fetch(`${API_URL}/services`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(service) }).then(res => res.json()),
+    deleteService: async (id) => fetch(`${API_URL}/services/${id}`, { method: 'DELETE' }).then(res => res.json()),
+
+    // Vendas
+    getSales: async () => fetch(`${API_URL}/sales`).then(res => res.json()).then(r => r.data || []),
+    saveSale: async (sale) => fetch(`${API_URL}/sales`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sale) }).then(res => res.json()),
+    deleteSale: async (id) => fetch(`${API_URL}/sales/${id}`, { method: 'DELETE' }).then(res => res.json()),
+
+    // Caixa (Cash)
+    getCashEntries: async () => fetch(`${API_URL}/cash`).then(res => res.json()).then(r => r.data || []),
+    saveCashEntry: async (entry) => fetch(`${API_URL}/cash`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) }).then(res => res.json()),
+    openCash: async (data) => fetch(`${API_URL}/cash/open`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(res => res.json()),
+    closeCash: async (data) => fetch(`${API_URL}/cash/close`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(res => res.json()),
+    isCashOpen: async () => fetch(`${API_URL}/cash/status`).then(res => res.json()).then(r => r.data?.isOpen || false),
+
+    // Compras
+    getPurchases: async () => fetch(`${API_URL}/purchases`).then(res => res.json()).then(r => r.data || []),
+    savePurchase: async (p) => fetch(`${API_URL}/purchases`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }).then(res => res.json()),
+    deletePurchase: async (id) => fetch(`${API_URL}/purchases/${id}`, { method: 'DELETE' }).then(res => res.json()),
+
+    // Despesas
+    getExpenses: async () => fetch(`${API_URL}/expenses`).then(res => res.json()).then(r => r.data || []),
+    saveExpense: async (exp) => fetch(`${API_URL}/expenses`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exp) }).then(res => res.json()),
+    deleteExpense: async (id) => fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' }).then(res => res.json()),
+
+    // Estatísticas e Configurações
+    getStats: async () => fetch(`${API_URL}/stats`).then(res => res.json()).then(r => ({ success: true, data: r.data })),
+    getSettings: async () => fetch(`${API_URL}/settings`).then(res => res.json()).then(r => ({ success: true, data: r.data })),
+    saveSettings: async (settings) => fetch(`${API_URL}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) }).then(res => res.json()),
+
+    // Utilitários e Senhas
+    getPassword: async () => fetch(`${API_URL}/auth/password`).then(res => res.json()).then(r => r.password || 'admin123'),
+    updatePassword: async (newPassword) => fetch(`${API_URL}/auth/password`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ newPassword }) }).then(res => res.json()),
+    testConnection: async () => fetch(`${API_URL}/test-connection`).then(res => res.json()).onCatch(() => ({ success: false })),
+    
+    // Impressões e Mocks Web (Evita quebras de hardware)
+    printService: async (data) => { console.log('🖨️ Impressão de serviço solicitada na Web:', data); return { success: true }; },
+    printSale: async (data) => { console.log('🖨️ Impressão de venda solicitada na Web:', data); return { success: true }; },
+    backupDatabase: async () => ({ success: true }),
+    restoreDatabase: async () => ({ success: true }),
+    resetDatabase: async () => ({ success: true })
+};
+
+// Remove leituras de hardware incompatíveis com o navegador
+function updateHardwareStatsMock() {
+    const memFooter = document.getElementById('memory-footer');
+    const storageUsage = document.getElementById('storage-usage');
+    if (memFooter) memFooter.innerHTML = '<i class="fas fa-wifi"></i> Online Cloud';
+    if (storageUsage) storageUsage.innerHTML = '<i class="fas fa-server"></i> Railway API';
+}
+setTimeout(updateHardwareStatsMock, 1000);
+setInterval(updateHardwareStatsMock, 15000);
+
+
 // ============ VARIÁVEIS GLOBAIS ==========
 let currentSale = { items: [], clientId: null, total: 0, discount: 0, subtotal: 0, labor: 0 };
 let currentServiceParts = [];
