@@ -1,54 +1,522 @@
 // ============ CONFIGURAÇÃO WEB (VERCEL & RAILWAY) ==========
 const API_URL = 'https://smarttechreparo-backend-production.up.railway.app/api';
 
+if (window.api && !window.electronAPI) {
+    window.electronAPI = {
+        getClients: window.api.clients.getAll,
+        saveClient: window.api.clients.save,
+        deleteClient: window.api.clients.delete,
+
+        getSuppliers: window.api.suppliers.getAll,
+        saveSupplier: window.api.suppliers.save,
+        deleteSupplier: window.api.suppliers.delete,
+
+        getParts: window.api.parts.getAll,
+        savePart: window.api.parts.save,
+        deletePart: window.api.parts.delete
+    };
+}
+
+async function requestJson(url, options = {}) {
+    const response = await fetch(url, options);
+    const json = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(json.error || 'Erro na comunicacao com a API.');
+    }
+
+    return json;
+}
+
 // Ponte de compatibilidade: Transforma chamadas do Electron em requisições HTTP Fetch puras
 window.electronAPI = {
     // Clientes
-    getClients: async () => fetch(`${API_URL}/clients`).then(res => res.json()).then(r => r.data || []),
-    saveClient: async (client) => fetch(`${API_URL}/clients`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(client) }).then(res => res.json()),
-    deleteClient: async (id) => fetch(`${API_URL}/clients/${id}`, { method: 'DELETE' }).then(res => res.json()),
+    getClients: async () => {
+        const result = await requestJson(`${API_URL}/clients`);
+        return result.data || [];
+    },
+    saveClient: async (client) => {
+
+    const isEdit = !!client.id;
+
+    const url = isEdit
+        ? `${API_URL}/clients/${client.id}`
+        : `${API_URL}/clients`;
+
+    const method = isEdit
+        ? 'PUT'
+        : 'POST';
+
+    const body = {
+        ...client,
+
+        phone: (client.phone || '').replace(/\D/g, ''),
+        document: (client.document || '').replace(/\D/g, ''),
+        cep: (client.cep || '').replace(/\D/g, '')
+    };
+
+    return requestJson(url, {
+        method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+},
+
+    deleteClient: async (id) => requestJson(`${API_URL}/clients/${id}`, {
+        method: 'DELETE'
+    }),
 
     // Fornecedores
-    getSuppliers: async () => fetch(`${API_URL}/suppliers`).then(res => res.json()).then(r => r.data || []),
-    saveSupplier: async (supplier) => fetch(`${API_URL}/suppliers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(supplier) }).then(res => res.json()),
-    deleteSupplier: async (id) => fetch(`${API_URL}/suppliers/${id}`, { method: 'DELETE' }).then(res => res.json()),
+    getSuppliers: async () => {
+        const result = await requestJson(`${API_URL}/suppliers`);
+        return result.data || [];
+    },
+    saveSupplier: async (supplier) => {
+        const isEdit = !!supplier.id;
+        const url = isEdit
+            ? `${API_URL}/suppliers/${supplier.id}`
+            : `${API_URL}/suppliers`;
+
+        const body = {
+            ...supplier,
+            phone: (supplier.phone || '').replace(/\D/g, ''),
+            document: (supplier.document || '').replace(/\D/g, '')
+        };
+
+        return requestJson(url, {
+            method: isEdit ? 'PUT' : 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+    },
+    deleteSupplier: async (id) => requestJson(`${API_URL}/suppliers/${id}`, {
+        method: 'DELETE'
+    }),
 
     // Peças
-    getParts: async () => fetch(`${API_URL}/parts`).then(res => res.json()).then(r => r.data || []),
-    savePart: async (part) => fetch(`${API_URL}/parts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(part) }).then(res => res.json()),
-    deletePart: async (id) => fetch(`${API_URL}/parts/${id}`, { method: 'DELETE' }).then(res => res.json()),
+    getParts: async () => {
+    const response = await fetch(`${API_URL}/parts`);
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao buscar peças.');
+    }
+
+    return result.data || [];
+},
+
+    savePart: async (part) => {
+    const isEdit = !!part.id;
+
+    const url = isEdit
+        ? `${API_URL}/parts/${part.id}`
+        : `${API_URL}/parts`;
+
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const body = {
+        name: part.name || '',
+        code: part.code || '',
+        quantity: Number(part.quantity) || 0,
+        cost_price: Number(part.cost_price) || 0,
+        sale_price: Number(part.sale_price) || 0,
+        supplier_id: part.supplier_id || null,
+        min_stock: Number(part.min_stock) || 0
+    };
+
+    const response = await fetch(url, {
+        method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao salvar peça.');
+    }
+
+    return result;
+},
+
+deletePart: async (id) => {
+    const response = await fetch(`${API_URL}/parts/${id}`, {
+        method: 'DELETE'
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao excluir peça.');
+    }
+
+    return result;
+},
 
     // Serviços
-    getServices: async () => fetch(`${API_URL}/services`).then(res => res.json()).then(r => r.data || []),
-    saveService: async (service) => fetch(`${API_URL}/services`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(service) }).then(res => res.json()),
-    deleteService: async (id) => fetch(`${API_URL}/services/${id}`, { method: 'DELETE' }).then(res => res.json()),
+getServices: async () => {
+    const response = await fetch(`${API_URL}/services`);
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao buscar serviços.');
+    }
+
+    return result.data || [];
+},
+
+saveService: async (service) => {
+    const isEdit = !!service.id;
+
+    const url = isEdit
+        ? `${API_URL}/services/${service.id}`
+        : `${API_URL}/services`;
+
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const body = {
+        client_id: service.client_id || service.clientId || null,
+        equipment: service.equipment || service.device_model || '',
+        device_model: service.device_model || service.equipment || '',
+        device_brand: service.device_brand || '',
+        problem: service.problem || '',
+        solution: service.solution || '',
+        value: Number(service.value) || 0,
+        status: service.status || 'orcamento',
+        notes: service.notes || '',
+        parts: Array.isArray(service.parts) ? service.parts : []
+    };
+
+    const response = await fetch(url, {
+        method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao salvar serviço.');
+    }
+
+    return result;
+},
+
+deleteService: async (id) => {
+    const response = await fetch(`${API_URL}/services/${id}`, {
+        method: 'DELETE'
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao excluir serviço.');
+    }
+
+    return result;
+},
 
     // Vendas
-    getSales: async () => fetch(`${API_URL}/sales`).then(res => res.json()).then(r => r.data || []),
-    saveSale: async (sale) => fetch(`${API_URL}/sales`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sale) }).then(res => res.json()),
-    deleteSale: async (id) => fetch(`${API_URL}/sales/${id}`, { method: 'DELETE' }).then(res => res.json()),
+getSales: async () => {
+    const response = await fetch(`${API_URL}/sales`);
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao buscar vendas.');
+    }
+
+    return result.data || [];
+},
+
+saveSale: async (sale) => {
+    const isEdit = !!sale.id;
+
+    const url = isEdit
+        ? `${API_URL}/sales/${sale.id}`
+        : `${API_URL}/sales`;
+
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const body = {
+        client_id: sale.client_id || sale.clientId || null,
+        items: Array.isArray(sale.items) ? sale.items : [],
+        total_amount: Number(sale.total_amount ?? sale.total ?? 0) || 0,
+        discount_amount: Number(sale.discount_amount ?? sale.discount ?? 0) || 0,
+        payment_method: sale.payment_method || sale.paymentMethod || 'dinheiro',
+        status: sale.status || 'concluida'
+    };
+
+    const response = await fetch(url, {
+        method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao salvar venda.');
+    }
+
+    return result;
+},
+
+deleteSale: async (id) => {
+    const response = await fetch(`${API_URL}/sales/${id}`, {
+        method: 'DELETE'
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao excluir venda.');
+    }
+
+    return result;
+},
 
     // Caixa (Cash)
-    getCashEntries: async () => fetch(`${API_URL}/cash`).then(res => res.json()).then(r => r.data || []),
-    saveCashEntry: async (entry) => fetch(`${API_URL}/cash`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) }).then(res => res.json()),
-    openCash: async (data) => fetch(`${API_URL}/cash/open`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(res => res.json()),
-    closeCash: async (data) => fetch(`${API_URL}/cash/close`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(res => res.json()),
-    isCashOpen: async () => fetch(`${API_URL}/cash/status`).then(res => res.json()).then(r => r.data?.isOpen || false),
+getCashEntries: async () => {
+    const result = await requestJson(`${API_URL}/cash`);
+    return result.data || [];
+},
 
-    // Compras
-    getPurchases: async () => fetch(`${API_URL}/purchases`).then(res => res.json()).then(r => r.data || []),
-    savePurchase: async (p) => fetch(`${API_URL}/purchases`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }).then(res => res.json()),
-    deletePurchase: async (id) => fetch(`${API_URL}/purchases/${id}`, { method: 'DELETE' }).then(res => res.json()),
+saveCashEntry: async (entry) => {
+    return requestJson(`${API_URL}/cash`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            type: entry.type || entry.tipo || 'entrada',
+            description: entry.description || entry.descricao || 'Movimentação de caixa',
+            amount: Number(entry.amount ?? entry.value ?? entry.valor ?? 0) || 0,
+            payment_method: entry.payment_method || entry.paymentMethod || 'dinheiro',
+            reference_type: entry.reference_type || entry.referenceType || null,
+            reference_id: entry.reference_id || entry.referenceId || null
+        })
+    });
+},
 
-    // Despesas
-    getExpenses: async () => fetch(`${API_URL}/expenses`).then(res => res.json()).then(r => r.data || []),
-    saveExpense: async (exp) => fetch(`${API_URL}/expenses`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exp) }).then(res => res.json()),
-    deleteExpense: async (id) => fetch(`${API_URL}/expenses/${id}`, { method: 'DELETE' }).then(res => res.json()),
+openCash: async (data) => {
+    return requestJson(`${API_URL}/cash/open`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            openingBalance: Number(data.openingBalance ?? data.opening_balance ?? 0) || 0,
+            notes: data.notes || ''
+        })
+    });
+},
+
+closeCash: async (data) => {
+    return requestJson(`${API_URL}/cash/close`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            closingBalance: Number(data.closingBalance ?? data.closing_balance ?? 0) || 0,
+            notes: data.notes || ''
+        })
+    });
+},
+
+isCashOpen: async () => {
+    const result = await requestJson(`${API_URL}/cash/status`);
+    return !!result.data?.isOpen;
+},
+
+    // Checklist
+    getChecklists: async () => {
+        const result = await requestJson(`${API_URL}/checklist`);
+        return result.data || [];
+    },
+
+    getChecklistById: async (id) => {
+        const result = await requestJson(`${API_URL}/checklist/${id}`);
+        return result.data || null;
+    },
+
+    getChecklistsByService: async (serviceId) => {
+        const result = await requestJson(`${API_URL}/checklist/service/${serviceId}`);
+        return result.data || [];
+    },
+
+    saveChecklist: async (checklist) => {
+        const formData = new FormData();
+
+        formData.append('service_id', checklist.service_id || checklist.serviceId || '');
+        formData.append('type', checklist.type || 'entrada');
+        formData.append('items', JSON.stringify(checklist.items || {}));
+        formData.append('observations', checklist.observations || '');
+        formData.append('technician_signature', checklist.technician_signature || '');
+
+        const photos = checklist.photos || [];
+
+        photos.forEach(photo => {
+            if (photo instanceof File) {
+                formData.append('photos', photo);
+            }
+        });
+
+        const response = await fetch(`${API_URL}/checklist`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Erro ao salvar checklist.');
+        }
+
+        return result;
+    },
+
+    deleteChecklist: async (id) => {
+        return requestJson(`${API_URL}/checklist/${id}`, {
+            method: 'DELETE'
+        });
+    },
+
+   // Compras
+getPurchases: async () => {
+    const result = await requestJson(`${API_URL}/purchases`);
+    return result.data || [];
+},
+
+savePurchase: async (purchase) => {
+    return requestJson(`${API_URL}/purchases`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(purchase)
+    });
+},
+
+deletePurchase: async (id) => {
+    return requestJson(`${API_URL}/purchases/${id}`, {
+        method: 'DELETE'
+    });
+},
+
+// Despesas
+getExpenses: async () => {
+    const result = await requestJson(`${API_URL}/expenses`);
+    return result.data || [];
+},
+
+saveExpense: async (expense) => {
+    return requestJson(`${API_URL}/expenses`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(expense)
+    });
+},
+
+deleteExpense: async (id) => {
+    return requestJson(`${API_URL}/expenses/${id}`, {
+        method: 'DELETE'
+    });
+},
 
     // Estatísticas e Configurações
-    getStats: async () => fetch(`${API_URL}/stats`).then(res => res.json()).then(r => ({ success: true, data: r.data })),
-    getSettings: async () => fetch(`${API_URL}/settings`).then(res => res.json()).then(r => ({ success: true, data: r.data })),
-    saveSettings: async (settings) => fetch(`${API_URL}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) }).then(res => res.json()),
+getStats: async () => {
+    const result = await requestJson(`${API_URL}/stats`);
+
+    return result.data || {
+        totalClients: 0,
+        totalSuppliers: 0,
+        totalParts: 0,
+        lowStock: 0,
+        todaySales: 0,
+        revenueToday: 0,
+        pendingServices: 0,
+        overduePayments: 0
+    };
+},
+
+getSettings: async () => {
+    const result = await requestJson(`${API_URL}/settings`);
+
+    return result.data || {};
+},
+
+saveSettings: async (settings) => {
+    return requestJson(`${API_URL}/settings`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(settings)
+    });
+},
+
+getHistory: async () => {
+    try {
+        const [sales, services, parts] = await Promise.all([
+            window.electronAPI.getSales().catch(() => []),
+            window.electronAPI.getServices().catch(() => []),
+            window.electronAPI.getParts().catch(() => [])
+        ]);
+
+        const activities = [];
+
+        sales.slice(0, 10).forEach(sale => {
+            activities.push({
+                type: 'venda',
+                date: sale.created_at || sale.date || new Date().toISOString(),
+                reason: `Venda registrada - R$ ${(Number(sale.total_amount ?? sale.total ?? 0) || 0).toFixed(2)}`,
+                client_id: sale.client_id || sale.clientId || null
+            });
+        });
+
+        services.slice(0, 10).forEach(service => {
+            activities.push({
+                type: 'servico',
+                date: service.created_at || new Date().toISOString(),
+                reason: `Serviço #${service.service_number || service.id?.substring(0, 6) || ''} - ${service.device_model || service.equipment || 'Equipamento'}`,
+                client_id: service.client_id || service.clientId || null
+            });
+        });
+
+        parts
+            .filter(part => Number(part.quantity || 0) <= Number(part.min_stock || 0) && Number(part.min_stock || 0) > 0)
+            .slice(0, 10)
+            .forEach(part => {
+                activities.push({
+                    type: 'estoque',
+                    date: part.updated_at || part.created_at || new Date().toISOString(),
+                    reason: `Estoque baixo: ${part.name} (${Number(part.quantity || 0)} un.)`
+                });
+            });
+
+        return activities
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 20);
+
+    } catch (error) {
+        console.error('Erro ao gerar histórico:', error);
+        return [];
+    }
+},
 
     // Utilitários e Senhas
     getPassword: async () => fetch(`${API_URL}/auth/password`).then(res => res.json()).then(r => r.password || 'admin123'),
@@ -953,16 +1421,28 @@ function setupAutoBackup() {
 async function checkPendingPayments() {
     try {
         const sales = await window.electronAPI.getSales();
-        const pending = sales.filter(s => s.paymentStatus === 'pending');
+
+        const pending = sales.filter(s =>
+            s.status === 'pendente' ||
+            s.payment_status === 'pending' ||
+            s.paymentStatus === 'pending'
+        );
+
         const overdue = pending.filter(s => {
-            const dueDate = new Date(s.date);
+            const dateValue = s.created_at || s.date;
+
+            if (!dateValue) return false;
+
+            const dueDate = new Date(dateValue);
             dueDate.setDate(dueDate.getDate() + (systemSettings.dueDays || 30));
+
             return dueDate < new Date();
         });
-        
+
         if (overdue.length > 0) {
             showNotification(`⚠️ Existem ${overdue.length} pagamentos atrasados!`, 'warning');
         }
+
     } catch (error) {
         console.error('Erro ao verificar pagamentos:', error);
     }
@@ -1140,65 +1620,110 @@ function showTab(tabId) {
 async function loadDashboard() {
     try {
         const stats = await window.electronAPI.getStats();
-        document.getElementById('total-clients').textContent = stats.totalClients || 0;
-        document.getElementById('total-suppliers').textContent = stats.totalSuppliers || 0;
-        document.getElementById('total-parts').textContent = stats.totalParts || 0;
-        document.getElementById('low-stock').textContent = stats.lowStock || 0;
-        document.getElementById('today-sales').textContent = stats.todaySales || 0;
-        document.getElementById('revenue-today').textContent = `R$ ${(stats.revenueToday || 0).toFixed(2)}`;
-        document.getElementById('pending-services').textContent = stats.pendingServices || 0;
-        document.getElementById('overdue-payments').textContent = stats.overduePayments || 0;
+
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+
+        setText('total-clients', stats.totalClients || 0);
+        setText('total-suppliers', stats.totalSuppliers || 0);
+        setText('total-parts', stats.totalParts || 0);
+        setText('low-stock', stats.lowStock || 0);
+        setText('today-sales', stats.todaySales || 0);
+        setText('revenue-today', `R$ ${(Number(stats.revenueToday) || 0).toFixed(2)}`);
+        setText('pending-services', stats.pendingServices || 0);
+        setText('overdue-payments', stats.overduePayments || 0);
+
         await loadRecentActivity();
+
         console.log('✅ Dashboard carregado');
-    } catch (error) { 
-        console.error('Erro ao carregar dashboard:', error); 
+
+    } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
+
+        const fallbackIds = [
+            'total-clients',
+            'total-suppliers',
+            'total-parts',
+            'low-stock',
+            'today-sales',
+            'pending-services',
+            'overdue-payments'
+        ];
+
+        fallbackIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '0';
+        });
+
+        const revenue = document.getElementById('revenue-today');
+        if (revenue) revenue.textContent = 'R$ 0.00';
     }
 }
 
 async function loadRecentActivity() {
     try {
         const history = await window.electronAPI.getHistory();
-        const clients = await window.electronAPI.getClients();
-        const suppliers = await window.electronAPI.getSuppliers();
-        
+        const clients = await window.electronAPI.getClients().catch(() => []);
+        const suppliers = await window.electronAPI.getSuppliers().catch(() => []);
+
         const list = document.getElementById('activity-list');
+
         if (!list) return;
-        
-        if (!history || !history.length) { 
-            list.innerHTML = '<div class="no-activity">Nenhuma atividade recente</div>'; 
-            return; 
+
+        if (!history || !history.length) {
+            list.innerHTML = '<div class="no-activity">Nenhuma atividade recente</div>';
+            return;
         }
-        
-        list.innerHTML = history.slice(-20).reverse().map(item => {
-            const time = item.date ? new Date(item.date).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit'}) : '--:--';
-            const icon = item.type === 'entrada' ? '📥' : 
-                        item.type === 'saida' ? '📤' : 
-                        item.type === 'venda' ? '💰' : 
-                        item.type === 'pagamento' ? '💳' : '📋';
-            
-            // 🔧 CORREÇÃO: Usar snake_case (client_id, supplier_id)
-            let personName = 'Sistema';
-            
+
+        list.innerHTML = history.slice(0, 20).map(item => {
+            const time = item.date
+                ? new Date(item.date).toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+                : '--:--';
+
+            const icon =
+                item.type === 'entrada' ? '📥' :
+                item.type === 'saida' ? '📤' :
+                item.type === 'venda' ? '💰' :
+                item.type === 'servico' ? '🛠️' :
+                item.type === 'estoque' ? '📦' :
+                item.type === 'pagamento' ? '💳' :
+                '📋';
+
+            let personName = '';
+
             if (item.client_id) {
                 const client = clients.find(c => c.id === item.client_id);
-                if (client) personName = client.name;
+                if (client) personName = ` - ${client.name}`;
             } else if (item.supplier_id) {
                 const supplier = suppliers.find(s => s.id === item.supplier_id);
-                if (supplier) personName = supplier.name;
+                if (supplier) personName = ` - ${supplier.name}`;
             }
-            
-            const descricao = item.reason || `${icon} ${item.quantity || 1}x ${item.part_name || 'Item'} (${personName})`;
-            
+
+            const descricao =
+                item.reason ||
+                `${icon} ${item.quantity || 1}x ${item.part_name || 'Item'}${personName}`;
+
             return `
                 <div class="activity-item">
                     <div class="activity-time">${time}</div>
-                    <div class="activity-desc">${descricao}</div>
+                    <div class="activity-desc">${icon} ${escapeHtml(descricao)}${escapeHtml(personName)}</div>
                 </div>
             `;
         }).join('');
-        
-    } catch (error) { 
-        console.error('Erro ao carregar atividades:', error); 
+
+    } catch (error) {
+        console.error('Erro ao carregar atividades:', error);
+
+        const list = document.getElementById('activity-list');
+
+        if (list) {
+            list.innerHTML = '<div class="no-activity">Nenhuma atividade recente</div>';
+        }
     }
 }
 
@@ -1577,44 +2102,131 @@ async function saveClient(e) {
             showNotification('Cliente salvo com sucesso!', 'success');
             hideClientForm();
             document.getElementById('client-form').reset();
+            document.getElementById('client-id').value = '';
             dataCache.delete('clients');
             await loadClients();
             await loadDashboard();
         } else { 
-            showNotification('Erro ao salvar cliente', 'error'); 
+            showNotification(result.error || 'Erro ao salvar cliente', 'error'); 
         }
     } catch (error) { 
         console.error(error); 
-        showNotification('Erro ao salvar cliente', 'error'); 
+        showNotification(error.message || 'Erro ao salvar cliente', 'error'); 
     }
 }
 
 function showClientForm(id = null) {
-    const fc = document.getElementById('client-form-container');
-    if (!fc) return;
-    fc.classList.remove('hidden');
-    if (id) {
-        window.electronAPI.getClients().then(clients => {
-            const c = clients.find(x => x.id === id);
-            if (c) {
-                document.getElementById('client-id').value = c.id;
-                document.getElementById('client-name').value = c.name || '';
-                document.getElementById('client-phone').value = c.phone || '';
-                document.getElementById('client-email').value = c.email || '';
-                document.getElementById('client-document').value = c.document || '';
-                document.getElementById('client-cep').value = c.cep || '';
-                document.getElementById('client-address').value = c.address || '';
-                document.getElementById('client-number').value = c.number || '';
-                document.getElementById('client-complement').value = c.complement || '';
-                document.getElementById('client-district').value = c.district || '';
-                document.getElementById('client-city').value = c.city || '';
-                document.getElementById('client-state').value = c.state || '';
-            }
-        });
-    } else { 
-        document.getElementById('client-form').reset(); 
-        document.getElementById('client-id').value = ''; 
+
+    const container = document.getElementById('client-form-container');
+
+    if (!container) return;
+
+    container.classList.remove('hidden');
+
+    // NOVO CLIENTE
+    if (!id) {
+
+        document.getElementById('client-form').reset();
+
+        document.getElementById('client-id').value = '';
+
+        return;
+
     }
+
+    // EDITAR CLIENTE
+    window.electronAPI.getClients()
+
+        .then(clients => {
+
+            const client = clients.find(c => c.id === id);
+
+            if (!client) {
+
+                showNotification('Cliente não encontrado.', 'error');
+
+                return;
+
+            }
+
+            document.getElementById('client-id').value = client.id || '';
+
+            document.getElementById('client-name').value = client.name || '';
+
+            // TELEFONE FORMATADO
+            document.getElementById('client-phone').value =
+                formatarTelefoneAPI(client.phone || '');
+
+            document.getElementById('client-email').value =
+                client.email || '';
+
+            // CPF / CNPJ FORMATADO
+            let documentValue = client.document || '';
+
+            if (documentValue.length === 11) {
+
+                documentValue = documentValue.replace(
+                    /(\d{3})(\d{3})(\d{3})(\d{2})/,
+                    '$1.$2.$3-$4'
+                );
+
+            } else if (documentValue.length === 14) {
+
+                documentValue = documentValue.replace(
+                    /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
+                    '$1.$2.$3/$4-$5'
+                );
+
+            }
+
+            document.getElementById('client-document').value =
+                documentValue;
+
+            // CEP FORMATADO
+            let cep = client.cep || '';
+
+            if (cep.length === 8) {
+
+                cep = cep.replace(
+                    /(\d{5})(\d{3})/,
+                    '$1-$2'
+                );
+
+            }
+
+            document.getElementById('client-cep').value = cep;
+
+            document.getElementById('client-address').value =
+                client.address || '';
+
+            document.getElementById('client-number').value =
+                client.number || '';
+
+            document.getElementById('client-complement').value =
+                client.complement || '';
+
+            document.getElementById('client-district').value =
+                client.district || '';
+
+            document.getElementById('client-city').value =
+                client.city || '';
+
+            document.getElementById('client-state').value =
+                client.state || '';
+
+        })
+
+        .catch(error => {
+
+            console.error(error);
+
+            showNotification(
+                'Erro ao carregar cliente.',
+                'error'
+            );
+
+        });
+
 }
 
 function hideClientForm() { 
@@ -1635,11 +2247,11 @@ async function deleteClient(id) {
                 await loadClients(); 
                 await loadDashboard(); 
             } else { 
-                showNotification('Erro ao excluir cliente', 'error'); 
+                showNotification(result.error || 'Erro ao excluir cliente', 'error'); 
             }
         } catch (error) { 
             console.error(error); 
-            showNotification('Erro ao excluir cliente', 'error'); 
+            showNotification(error.message || 'Erro ao excluir cliente', 'error'); 
         }
     });
 }
@@ -1657,26 +2269,32 @@ async function loadSuppliers(search = '') {
             return;
         }
         
-        const filtered = search ? suppliers.filter(s => s.name?.toLowerCase().includes(search.toLowerCase())) : suppliers;
+        const filtered = search ? suppliers.filter(s => {
+            const term = search.toLowerCase();
+            return [
+                s.name,
+                s.contact,
+                s.phone,
+                s.email,
+                s.document,
+                s.category,
+                s.city
+            ].some(value => String(value || '').toLowerCase().includes(term));
+        }) : suppliers;
         if (!filtered.length) { 
             tbody.innerHTML = '<tr><td colspan="7" class="no-data">Nenhum fornecedor cadastrado</td></tr>'; 
             return; 
         }
         
         tbody.innerHTML = filtered.map(s => {
-            let documentDisplay = s.document || '-';
-            if (documentDisplay && documentDisplay.length === 14) {
-                documentDisplay = documentDisplay.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-            }
-            
             return `
             <tr>
-                <td>${s.name || '-'}</td>
-                <td>${s.contact || '-'}</td>
-                <td>${s.phone || '-'}</td>
-                <td>${s.email || '-'}</td>
-                <td>${s.category || '-'}</td>
-                <td>${s.city || '-'}</td>
+                <td>${escapeHtml(s.name || '-')}</td>
+                <td>${escapeHtml(s.contact || '-')}</td>
+                <td>${escapeHtml(s.phone || '-')}</td>
+                <td>${escapeHtml(s.email || '-')}</td>
+                <td>${escapeHtml(s.category || '-')}</td>
+                <td>${escapeHtml(s.city || '-')}</td>
                 <td class="actions">
                     <button class="btn-view" onclick="viewSupplier('${s.id}')"><i class="fas fa-eye"></i></button>
                     <button class="btn-edit" onclick="editSupplier('${s.id}')"><i class="fas fa-edit"></i></button>
@@ -1716,13 +2334,23 @@ async function saveSupplier(e) {
             return; 
         }
         
+        if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+            showNotification('Informe um telefone com DDD para o fornecedor', 'error');
+            return;
+        }
+        
         const cleanDocument = documentValue.replace(/\D/g, '');
+
+        if (cleanDocument && cleanDocument.length !== 14) {
+            showNotification('CNPJ deve ter 14 digitos', 'error');
+            return;
+        }
         
         const data = {
             id: id,
             name: name,
             contact: contact,
-            phone: phone,
+            phone: phoneDigits,
             email: email,
             document: cleanDocument,
             category: category,
@@ -1855,7 +2483,7 @@ async function deleteSupplier(id) {
             }
         } catch (error) { 
             console.error('❌ Erro ao excluir fornecedor:', error);
-            showNotification('❌ Erro ao excluir fornecedor', 'error');
+            showNotification(error.message || 'Erro ao excluir fornecedor', 'error');
         }
     });
 }
@@ -1869,21 +2497,22 @@ async function viewSupplier(id) {
             return; 
         }
         
+        const documentNumbers = String(s.document || '').replace(/\D/g, '');
         let documentDisplay = s.document || '-';
-        if (documentDisplay && documentDisplay.length === 14) {
-            documentDisplay = documentDisplay.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+        if (documentNumbers.length === 14) {
+            documentDisplay = documentNumbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
         }
         
         const body = `<div style="line-height:2;">
-            <strong>Empresa:</strong> ${s.name || '-'}<br>
-            <strong>Contato:</strong> ${s.contact || '-'}<br>
-            <strong>Telefone:</strong> ${s.phone || '-'}<br>
-            <strong>Email:</strong> ${s.email || '-'}<br>
-            <strong>CNPJ:</strong> ${documentDisplay}<br>
-            <strong>Categoria:</strong> ${s.category || '-'}<br>
-            <strong>Endereço:</strong> ${s.address || '-'}<br>
-            <strong>Cidade/UF:</strong> ${s.city || '-'}/${s.state || '-'}<br>
-            <strong>Observações:</strong> ${s.notes || '-'}
+            <strong>Empresa:</strong> ${escapeHtml(s.name || '-')}<br>
+            <strong>Contato:</strong> ${escapeHtml(s.contact || '-')}<br>
+            <strong>Telefone:</strong> ${escapeHtml(s.phone || '-')}<br>
+            <strong>Email:</strong> ${escapeHtml(s.email || '-')}<br>
+            <strong>CNPJ:</strong> ${escapeHtml(documentDisplay)}<br>
+            <strong>Categoria:</strong> ${escapeHtml(s.category || '-')}<br>
+            <strong>Endereço:</strong> ${escapeHtml(s.address || '-')}<br>
+            <strong>Cidade/UF:</strong> ${escapeHtml(s.city || '-')}/${escapeHtml(s.state || '-')}<br>
+            <strong>Observações:</strong> ${escapeHtml(s.notes || '-')}
         </div>`;
         
         showGenericModal('Detalhes do Fornecedor', body, [
@@ -1899,140 +2528,195 @@ async function loadParts(search = '') {
     try {
         const parts = await getCachedData('parts', () => window.electronAPI.getParts());
         const suppliers = await getCachedData('suppliers', () => window.electronAPI.getSuppliers());
+
         const tbody = document.getElementById('parts-table-body');
         if (!tbody) return;
-        
-        const filtered = parts.filter(p => p?.name?.toLowerCase().includes((search || '').toLowerCase()));
-        
-        if (!filtered.length) { 
-            tbody.innerHTML = '<tr><td colspan="8" class="no-data">Nenhuma peça cadastrada</td></tr>'; 
-            return; 
+
+        const term = (search || '').toLowerCase();
+
+        const filtered = term
+            ? parts.filter(p =>
+                (p.name || '').toLowerCase().includes(term) ||
+                (p.code || '').toLowerCase().includes(term)
+            )
+            : parts;
+
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="no-data">Nenhuma peça cadastrada</td></tr>';
+            return;
         }
-        
+
         tbody.innerHTML = filtered.map(p => {
-            // 🔧 CORREÇÃO: Buscar fornecedor por supplier_id (snake_case)
             const supplier = suppliers.find(s => s.id === p.supplier_id);
             const supplierName = supplier ? supplier.name : '-';
-            
-            console.log('Peça:', p.name, '| supplier_id:', p.supplier_id, '| Fornecedor:', supplierName);
-            
-            return `<tr>
-                <td style="max-width:200px;">${escapeHtml(p.name || '-')}</td>
-                <td>${escapeHtml(p.code || '-')}</td>
-                <td>${escapeHtml(p.category || '-')}</td>
-                <td>${escapeHtml(supplierName)}</td>
-                <td class="text-center">${p.quantity || 0}</td>
-                <td class="text-center">R$ ${(p.cost || 0).toFixed(2)}</td>
-                <td class="text-center">R$ ${(p.price || 0).toFixed(2)}</td>
-                <td class="actions">
-                    <button class="btn-edit" onclick="editPart('${p.id}')"><i class="fas fa-edit"></i></button>
-                    <button class="btn-delete" onclick="deletePart('${p.id}')"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>`;
+
+            const quantity = Number(p.quantity) || 0;
+            const minStock = Number(p.min_stock) || 0;
+            const costPrice = Number(p.cost_price) || 0;
+            const salePrice = Number(p.sale_price) || 0;
+
+            const stockAlert = quantity <= minStock && minStock > 0
+                ? ' <span class="badge badge-warning">Baixo</span>'
+                : '';
+
+            return `
+                <tr>
+                    <td style="max-width:200px;">${escapeHtml(p.name || '-')}</td>
+                    <td>${escapeHtml(p.code || '-')}</td>
+                    <td>-</td>
+                    <td>${escapeHtml(supplierName)}</td>
+                    <td class="text-center">${quantity}${stockAlert}</td>
+                    <td class="text-center">R$ ${costPrice.toFixed(2)}</td>
+                    <td class="text-center">R$ ${salePrice.toFixed(2)}</td>
+                    <td class="actions">
+                        <button class="btn-edit" onclick="editPart('${p.id}')" title="Editar peça">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete" onclick="deletePart('${p.id}')" title="Excluir peça">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
         }).join('');
-    } catch (error) { 
-        console.error('Erro ao carregar peças:', error); 
-        showNotification('Erro ao carregar peças', 'error'); 
+
+    } catch (error) {
+        console.error('Erro ao carregar peças:', error);
+        showNotification('Erro ao carregar peças', 'error');
     }
 }
 
 async function savePart(e) {
     e.preventDefault();
-    
-    const supplierSelect = document.getElementById('part-supplier');
-    const supplierId = supplierSelect?.value || null;
-    
-    console.log('💾 Salvando peça - Fornecedor selecionado:', supplierId);
-    
+
+    const id = document.getElementById('part-id')?.value || null;
+
     const data = {
-        id: document.getElementById('part-id').value || null,
-        name: document.getElementById('part-name').value,
-        code: document.getElementById('part-code').value,
-        category: document.getElementById('part-category').value,
-        supplierId: supplierId,  // ✅ Enviar como supplierId
-        quantity: parseInt(document.getElementById('part-quantity').value) || 0,
-        minQuantity: parseInt(document.getElementById('part-min-quantity').value) || 5,
-        cost: parseFloat(document.getElementById('part-cost').value) || 0,
-        price: parseFloat(document.getElementById('part-price').value) || 0,
-        description: document.getElementById('part-description').value,
-        ncm: document.getElementById('part-ncm')?.value || '',
-        cfop: document.getElementById('part-cfop')?.value || '5405'
+        id,
+        name: document.getElementById('part-name')?.value?.trim() || '',
+        code: document.getElementById('part-code')?.value?.trim() || '',
+        supplier_id: document.getElementById('part-supplier')?.value || null,
+        quantity: parseInt(document.getElementById('part-quantity')?.value) || 0,
+        min_stock: parseInt(document.getElementById('part-min-quantity')?.value) || 0,
+        cost_price: parseFloat(document.getElementById('part-cost')?.value) || 0,
+        sale_price: parseFloat(document.getElementById('part-price')?.value) || 0
     };
-    
-    if (!data.name) { 
-        showNotification('Nome da peça é obrigatório', 'error'); 
-        return; 
+
+    if (!data.name) {
+        showNotification('Nome da peça é obrigatório', 'error');
+        return;
     }
-    
-    console.log('📤 Enviando dados da peça:', {
-        nome: data.name,
-        supplierId: data.supplierId,
-        quantidade: data.quantity,
-        custo: data.cost,
-        preco: data.price
-    });
-    
+
     try {
         const result = await window.electronAPI.savePart(data);
+
         if (result.success) {
-            showNotification('Peça salva com sucesso!', 'success');
+            showNotification(
+                id ? 'Peça atualizada com sucesso!' : 'Peça cadastrada com sucesso!',
+                'success'
+            );
+
             hidePartForm();
+
+            document.getElementById('part-form')?.reset();
+            document.getElementById('part-id').value = '';
+
             dataCache.delete('parts');
+
             await loadParts();
             await loadDashboard();
-            await loadStock();
-        } else { 
-            showNotification('Erro ao salvar peça: ' + (result.error || 'Erro desconhecido'), 'error'); 
+
+            if (typeof loadStock === 'function') {
+                await loadStock();
+            }
+
+        } else {
+            showNotification(result.error || 'Erro ao salvar peça', 'error');
         }
-    } catch (error) { 
-        console.error('❌ Erro:', error); 
-        showNotification('Erro ao salvar peça', 'error'); 
+
+    } catch (error) {
+        console.error('Erro ao salvar peça:', error);
+        showNotification(error.message || 'Erro ao salvar peça', 'error');
     }
 }
 
 async function showPartForm(id = null) {
-    const fc = document.getElementById('part-form-container');
-    if (!fc) return;
-    fc.classList.remove('hidden');
-    
+    const container = document.getElementById('part-form-container');
+
+    if (!container) return;
+
+    container.classList.remove('hidden');
+
     try {
         const suppliers = await window.electronAPI.getSuppliers();
-        const sel = document.getElementById('part-supplier');
-        if (sel) {
-            sel.innerHTML = '<option value="">Selecione um fornecedor...</option>' + 
-                suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+        const supplierSelect = document.getElementById('part-supplier');
+
+        if (supplierSelect) {
+            supplierSelect.innerHTML =
+                '<option value="">Selecione um fornecedor.</option>' +
+                suppliers
+                    .map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`)
+                    .join('');
         }
-        
-        if (id) {
-            const parts = await window.electronAPI.getParts();
-            const p = parts.find(x => x.id === id);
-            if (p) {
-                document.getElementById('part-id').value = p.id;
-                document.getElementById('part-name').value = p.name || '';
-                document.getElementById('part-code').value = p.code || '';
-                document.getElementById('part-category').value = p.category || '';
-                
-                // ✅ CORREÇÃO: Selecionar o fornecedor correto
-                if (sel && p.supplier_id) {
-                    sel.value = p.supplier_id;
-                    console.log('✏️ Fornecedor selecionado:', p.supplier_id);
-                }
-                
-                document.getElementById('part-quantity').value = p.quantity || 0;
-                document.getElementById('part-min-quantity').value = p.minQuantity || 5;
-                document.getElementById('part-cost').value = p.cost || '';
-                document.getElementById('part-price').value = p.price || '';
-                document.getElementById('part-description').value = p.description || '';
-                document.getElementById('part-ncm').value = p.ncm || '';
-                document.getElementById('part-cfop').value = p.cfop || '5405';
-            }
-        } else { 
-            document.getElementById('part-form').reset(); 
+
+        // Nova peça
+        if (!id) {
+            document.getElementById('part-form')?.reset();
             document.getElementById('part-id').value = '';
-            document.getElementById('part-cfop').value = '5405';
+
+            if (document.getElementById('part-min-quantity')) {
+                document.getElementById('part-min-quantity').value = '5';
+            }
+
+            if (document.getElementById('part-cfop')) {
+                document.getElementById('part-cfop').value = '5405';
+            }
+
+            return;
         }
-    } catch (error) { 
-        console.error('Erro ao carregar formulário de peça:', error); 
+
+        // Editar peça
+        const parts = await window.electronAPI.getParts();
+        const part = parts.find(p => p.id === id);
+
+        if (!part) {
+            showNotification('Peça não encontrada', 'error');
+            return;
+        }
+
+        document.getElementById('part-id').value = part.id || '';
+        document.getElementById('part-name').value = part.name || '';
+        document.getElementById('part-code').value = part.code || '';
+
+        if (document.getElementById('part-category')) {
+            document.getElementById('part-category').value = part.category || '';
+        }
+
+        if (supplierSelect) {
+            supplierSelect.value = part.supplier_id || '';
+        }
+
+        document.getElementById('part-quantity').value = part.quantity || 0;
+        document.getElementById('part-min-quantity').value = part.min_stock || 0;
+        document.getElementById('part-cost').value = part.cost_price || '';
+        document.getElementById('part-price').value = part.sale_price || '';
+
+        if (document.getElementById('part-description')) {
+            document.getElementById('part-description').value = part.description || '';
+        }
+
+        if (document.getElementById('part-ncm')) {
+            document.getElementById('part-ncm').value = part.ncm || '';
+        }
+
+        if (document.getElementById('part-cfop')) {
+            document.getElementById('part-cfop').value = part.cfop || '5405';
+        }
+
+    } catch (error) {
+        console.error('Erro ao carregar formulário de peça:', error);
+        showNotification('Erro ao carregar formulário de peça', 'error');
     }
 }
 
@@ -2047,21 +2731,27 @@ function editPart(id) {
 async function deletePart(id) {
     confirmAction('Tem certeza que deseja excluir esta peça?', async () => {
         try {
-            showNotification('Excluindo peça...', 'info');
             const result = await window.electronAPI.deletePart(id);
-            
-            if (result.success) { 
-                showNotification(result.message || 'Peça excluída com sucesso!', 'success'); 
+
+            if (result.success) {
+                showNotification('Peça excluída com sucesso!', 'success');
+
                 dataCache.delete('parts');
-                await loadParts(); 
-                await loadDashboard(); 
-                await loadStock(); 
-            } else { 
-                showNotification(result.error || 'Erro ao excluir peça', 'error'); 
+
+                await loadParts();
+                await loadDashboard();
+
+                if (typeof loadStock === 'function') {
+                    await loadStock();
+                }
+
+            } else {
+                showNotification(result.error || 'Erro ao excluir peça', 'error');
             }
-        } catch (error) { 
-            console.error('Erro ao excluir:', error);
-            showNotification('Erro ao excluir peça', 'error'); 
+
+        } catch (error) {
+            console.error('Erro ao excluir peça:', error);
+            showNotification(error.message || 'Erro ao excluir peça', 'error');
         }
     });
 }
@@ -2313,13 +3003,29 @@ async function loadSaleParts() {
     try {
         const parts = await window.electronAPI.getParts();
         const sel = document.getElementById('sale-part');
-        if (sel) {
-            sel.innerHTML = '<option value="">Selecione uma peça...</option>' + 
-                parts.filter(p => p.quantity > 0).map(p => 
-                    `<option value="${p.id}" data-price="${p.price || 0}">${p.name} (Estoque: ${p.quantity}) - R$ ${(p.price || 0).toFixed(2)}</option>`
-                ).join('');
-        }
-    } catch (e) { console.error(e); }
+
+        if (!sel) return;
+
+        sel.innerHTML =
+            '<option value="">Selecione uma peça...</option>' +
+            parts
+                .filter(p => Number(p.quantity) > 0)
+                .map(p => {
+                    const price = Number(p.sale_price ?? p.price ?? 0) || 0;
+                    const quantity = Number(p.quantity) || 0;
+
+                    return `
+                        <option value="${p.id}" data-price="${price}">
+                            ${escapeHtml(p.name)} (Estoque: ${quantity}) - R$ ${price.toFixed(2)}
+                        </option>
+                    `;
+                })
+                .join('');
+
+    } catch (error) {
+        console.error('Erro ao carregar peças para venda:', error);
+        showNotification('Erro ao carregar peças para venda.', 'error');
+    }
 }
 
 function updateSalePartPrice() {
@@ -2366,45 +3072,61 @@ function removeSaleItem(idx) {
 }
 
 async function addSaleItem() {
-    const partId = document.getElementById('sale-part').value;
-    if (!partId) { 
-        showNotification('Selecione uma peça', 'error'); 
-        return; 
+    const partId = document.getElementById('sale-part')?.value;
+
+    if (!partId) {
+        showNotification('Selecione uma peça', 'error');
+        return;
     }
-    const quantity = parseFloat(document.getElementById('sale-quantity').value) || 1;
-    const price = parseFloat(document.getElementById('sale-price').value) || 0;
-    if (quantity <= 0 || price <= 0) { 
-        showNotification('Quantidade e preço devem ser maiores que zero', 'error'); 
-        return; 
+
+    const quantity = parseFloat(document.getElementById('sale-quantity')?.value) || 1;
+    const price = parseFloat(document.getElementById('sale-price')?.value) || 0;
+
+    if (quantity <= 0 || price <= 0) {
+        showNotification('Quantidade e preço devem ser maiores que zero', 'error');
+        return;
     }
+
     try {
         const parts = await window.electronAPI.getParts();
         const part = parts.find(p => p.id === partId);
-        if (!part) { 
-            showNotification('Peça não encontrada', 'error'); 
-            return; 
+
+        if (!part) {
+            showNotification('Peça não encontrada', 'error');
+            return;
         }
-        if (part.quantity < quantity) { 
-            showNotification(`Estoque insuficiente! Disponível: ${part.quantity}`, 'error'); 
-            return; 
+
+        const stockQuantity = Number(part.quantity) || 0;
+
+        if (stockQuantity < quantity) {
+            showNotification(`Estoque insuficiente! Disponível: ${stockQuantity}`, 'error');
+            return;
         }
-        currentSale.items.push({ 
-            partId, 
-            name: part.name, 
-            quantity, 
-            price, 
-            subtotal: price * quantity 
+
+        currentSale.items.push({
+            part_id: part.id,
+            partId: part.id,
+            name: part.name,
+            quantity,
+            price,
+            subtotal: price * quantity
         });
+
         updateSaleItemsTable();
         updateSaleTotal();
+
         document.getElementById('sale-part').value = '';
         document.getElementById('sale-quantity').value = '1';
         document.getElementById('sale-price').value = '';
-        document.getElementById('sale-item-subtotal').textContent = 'R$ 0.00';
+
+        const subtotal = document.getElementById('sale-item-subtotal');
+        if (subtotal) subtotal.textContent = 'R$ 0.00';
+
         showNotification('Item adicionado!', 'success');
-    } catch (e) { 
-        console.error(e); 
-        showNotification('Erro ao adicionar item', 'error'); 
+
+    } catch (error) {
+        console.error('Erro ao adicionar item:', error);
+        showNotification('Erro ao adicionar item', 'error');
     }
 }
 
@@ -2423,253 +3145,294 @@ async function loadSales(search = '') {
     try {
         const sales = await window.electronAPI.getSales();
         const clients = await window.electronAPI.getClients();
-        const tbody = document.getElementById('sales-history-body');
+
+        const tbody = document.getElementById('sales-table-body');
+
         if (!tbody) return;
-        
-        console.log('📊 Carregando vendas...');
-        console.log('  Vendas:', sales?.length || 0);
-        console.log('  Clientes:', clients?.length || 0);
-        
+
         let filtered = sales || [];
+
         if (search) {
             const term = search.toLowerCase();
-            filtered = filtered.filter(s => {
-                const client = clients.find(c => c.id === s.client_id);
-                return (String(s.sale_number).includes(term)) ||
-                       (client?.name?.toLowerCase().includes(term)) ||
-                       (s.items?.some(i => (i.name || '').toLowerCase().includes(term)));
+
+            filtered = filtered.filter(sale => {
+                const client = clients.find(c => c.id === sale.client_id || c.id === sale.clientId);
+                const clientName = client?.name || '';
+
+                return (
+                    clientName.toLowerCase().includes(term) ||
+                    (sale.payment_method || sale.paymentMethod || '').toLowerCase().includes(term) ||
+                    (sale.payment_description || sale.paymentDescription || '').toLowerCase().includes(term) ||
+                    (sale.status || '').toLowerCase().includes(term)
+                );
             });
         }
-        
-        if (!filtered.length) { 
-            tbody.innerHTML = '<tr><td colspan="8" class="no-data">Nenhuma venda registrada</td></tr>'; 
-            return; 
+
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Nenhuma venda registrada</td></tr>';
+
+            const totalSales = document.getElementById('total-sales');
+            const salesRevenue = document.getElementById('sales-revenue');
+
+            if (totalSales) totalSales.textContent = '0';
+            if (salesRevenue) salesRevenue.textContent = 'R$ 0,00';
+
+            return;
         }
-        
-        tbody.innerHTML = filtered
-            .sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at))
-            .map(s => {
-                // 🔧 CORREÇÃO: Buscar cliente pelo client_id (não clientId)
-                const client = clients.find(c => c.id === s.client_id);
-                const clientName = client ? client.name : (s.client_id ? 'Cliente #' + (s.client_id).substring(0, 6) : 'Consumidor Final');
-                
-                console.log('  Venda #' + s.sale_number + ' | client_id:', s.client_id, '| Cliente:', clientName);
-                
-                // 🔧 CORREÇÃO: Status do pagamento
-                const paymentStatus = (s.payment_status || 'pending').toLowerCase();
-                let statusClass = 'badge-warning';
-                let statusLabel = 'Pendente';
-                
-                if (paymentStatus === 'paid') {
-                    statusClass = 'badge-success';
-                    statusLabel = 'Pago';
-                }
-                
-                // 🔧 CORREÇÃO: Data
-                const saleDate = s.date || s.created_at;
-                const formattedDate = saleDate ? new Date(saleDate).toLocaleDateString('pt-BR') : '-';
-                
-                // 🔧 CORREÇÃO: Pagamento
-                const paymentDesc = s.payment_description || '-';
-                
-                return `<tr>
-                    <td class="text-center fw-bold">#${s.sale_number}</td>
-                    <td>${formattedDate}</td>
+
+        const totalRevenue = filtered.reduce((sum, sale) => {
+            return sum + (Number(sale.total_amount ?? sale.total ?? 0) || 0);
+        }, 0);
+
+        const totalSalesElement = document.getElementById('total-sales');
+        const salesRevenueElement = document.getElementById('sales-revenue');
+
+        if (totalSalesElement) {
+            totalSalesElement.textContent = filtered.length;
+        }
+
+        if (salesRevenueElement) {
+            salesRevenueElement.textContent = `R$ ${totalRevenue.toFixed(2)}`;
+        }
+
+        tbody.innerHTML = filtered.map(sale => {
+            const client = clients.find(c => c.id === sale.client_id || c.id === sale.clientId);
+
+            const clientName = client
+                ? client.name
+                : 'Consumidor Final';
+
+            const total = Number(sale.total_amount ?? sale.total ?? 0) || 0;
+            const discount = Number(sale.discount_amount ?? sale.discount ?? 0) || 0;
+            const itemCount = Array.isArray(sale.items) ? sale.items.length : 0;
+
+            const paymentMethod =
+                sale.payment_description ||
+                sale.paymentDescription ||
+                sale.payment_method ||
+                sale.paymentMethod ||
+                '-';
+
+            const dateValue = sale.created_at || sale.date;
+            const date = dateValue
+                ? new Date(dateValue).toLocaleDateString('pt-BR')
+                : '-';
+
+            const status = sale.status || 'concluida';
+
+            let statusClass = 'badge-success';
+            let statusLabel = 'Concluída';
+
+            if (status === 'pendente') {
+                statusClass = 'badge-warning';
+                statusLabel = 'Pendente';
+            } else if (status === 'cancelada') {
+                statusClass = 'badge-danger';
+                statusLabel = 'Cancelada';
+            }
+
+            return `
+                <tr>
+                    <td>${date}</td>
                     <td>${escapeHtml(clientName)}</td>
-                    <td class="text-center">${s.items?.length || 0}</td>
-                    <td class="text-center fw-bold">R$ ${(s.total || 0).toFixed(2)}</td>
-                    <td>${escapeHtml(paymentDesc)}</td>
-                    <td class="text-center"><span class="badge ${statusClass}">${statusLabel}</span></td>
-                    <td class="actions">
-                        <button class="btn-view" onclick="viewSale('${s.id}')"><i class="fas fa-eye"></i></button>
-                        <button class="btn-edit" onclick="editSale('${s.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn-print" onclick="printSale('${s.id}')"><i class="fas fa-print"></i></button>
-                        <button class="btn-delete" onclick="showDeleteConfirmationModal('${s.id}')"><i class="fas fa-trash"></i></button>
+                    <td class="text-center">${itemCount}</td>
+                    <td class="text-center">R$ ${discount.toFixed(2)}</td>
+                    <td class="text-center fw-bold">R$ ${total.toFixed(2)}</td>
+                    <td>${escapeHtml(paymentMethod)}</td>
+                    <td class="text-center">
+                        <span class="badge ${statusClass}">${statusLabel}</span>
                     </td>
-                </tr>`;
-            }).join('');
-            
-        console.log('✅ Tabela de vendas atualizada');
-    } catch (error) { 
-        console.error('❌ Erro ao carregar vendas:', error);
+                    <td class="actions">
+                        <button class="btn-view" onclick="viewSale('${sale.id}')" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-print" onclick="printSale('${sale.id}')" title="Imprimir">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        <button class="btn-delete" onclick="showDeleteConfirmationModal('${sale.id}')" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Erro ao carregar vendas:', error);
+        showNotification('Erro ao carregar vendas.', 'error');
     }
 }
 
 async function finalizeSale(e) {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (window.isProcessingSale) {
-        console.warn('⚠️ Venda já está sendo processada...');
+        console.warn('Venda já está sendo processada.');
         return false;
     }
-    
+
     window.isProcessingSale = true;
-    
+
     const submitBtn = document.querySelector('#sale-form button[type="submit"]');
+
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
     }
-    
+
     try {
         const clientSelect = document.getElementById('sale-client');
         const clientId = clientSelect?.value || null;
-        
-        if (!currentSale.items || currentSale.items.length === 0) { 
-            showNotification('Adicione pelo menos um item à venda', 'error'); 
-            window.isProcessingSale = false;
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Venda';
-            }
+
+        if (!currentSale.items || currentSale.items.length === 0) {
+            showNotification('Adicione pelo menos um item à venda', 'error');
             return false;
         }
-        
-        // Buscar nome do cliente
+
         let clientName = '';
+
         if (clientId) {
-            try {
-                const clients = await window.electronAPI.getClients();
-                const client = clients.find(c => c.id === clientId);
-                clientName = client ? client.name : '';
-            } catch (e) {
-                console.error('Erro ao buscar cliente:', e);
-            }
+            const clients = await window.electronAPI.getClients();
+            const client = clients.find(c => c.id === clientId);
+            clientName = client ? client.name : '';
         }
-        
-        const itemsSubtotal = currentSale.items.reduce((s, i) => s + (i.subtotal || 0), 0);
-        const labor = parseFloat(document.getElementById('sale-labor')?.value) || 0;
-        let discount = 0;
-        
-        if (autoDiscountEnabled && currentPaymentMode === 'vista') {
-            discount = (itemsSubtotal + labor) * (discountConfig[currentPaymentMethod] || 0) / 100;
-        }
-        
-        let total = itemsSubtotal + labor - discount;
-        
-        // Juros para boleto parcelado acima de 4x
-        if (currentPaymentMode === 'prazo' && currentFinancedMethod === 'boleto') {
-            const extra = Math.max(0, currentInstallments - 4);
-            const interestRate = systemSettings?.interestAfter4Percent || 2;
-            total = total * (1 + (extra * interestRate) / 100);
-        }
-        
-        currentSale.subtotal = itemsSubtotal;
-        currentSale.labor = labor;
-        currentSale.discount = discount;
-        currentSale.total = total;
-        currentSale.clientId = clientId;
-        
-        // Determinar status do pagamento
-        let initialStatus = 'pending';
-        
+
+        const totals = calculateFinalTotal();
+
+        let initialStatus = 'pendente';
+
         if (currentPaymentMode === 'vista') {
-            // PIX, Dinheiro, Débito, Crédito à vista = PAGO
-            initialStatus = 'paid';
+            initialStatus = 'concluida';
         } else if (currentPaymentMode === 'prazo' && currentFinancedMethod === 'credito_prazo') {
-            // Cartão de crédito = PAGO (quem parcela é o cliente com o banco)
-            initialStatus = 'paid';
+            initialStatus = 'concluida';
         } else if (currentPaymentMode === 'prazo' && currentFinancedMethod === 'boleto') {
-            // Boleto = PENDENTE
-            initialStatus = 'pending';
+            initialStatus = 'pendente';
         }
-        
-        console.log('📊 Status definido:', initialStatus, '| Modo:', currentPaymentMode, '| Método:', currentFinancedMethod || currentPaymentMethod);
-        
-        // Montar descrição do pagamento
-        let paymentDescription = '';
-        const methods = { 
-            pix: 'PIX', 
-            dinheiro: 'Dinheiro', 
-            debito: 'Débito', 
+
+        const methods = {
+            pix: 'PIX',
+            dinheiro: 'Dinheiro',
+            debito: 'Débito',
             credito_vista: 'Crédito à vista',
             credito_prazo: 'Cartão de Crédito',
             boleto: 'Boleto'
         };
-        
+
+        const paymentMethod =
+            currentPaymentMode === 'vista'
+                ? currentPaymentMethod
+                : currentFinancedMethod;
+
+        const methodName = methods[paymentMethod] || paymentMethod;
+
+        let paymentDescription = '';
+
         if (currentPaymentMode === 'vista') {
-            const methodName = methods[currentPaymentMethod] || currentPaymentMethod;
-            paymentDescription = `${methodName} (à vista) - Total: R$ ${total.toFixed(2)}`;
-            if (discount > 0) {
-                paymentDescription += ` (Desconto: R$ ${discount.toFixed(2)})`;
+            paymentDescription = `${methodName} (à vista) - Total: R$ ${totals.total.toFixed(2)}`;
+
+            if (totals.autoDiscount > 0) {
+                paymentDescription += ` (Desconto: R$ ${totals.autoDiscount.toFixed(2)})`;
             }
-        } else if (currentPaymentMode === 'prazo') {
-            const installmentValue = total / currentInstallments;
-            const methodName = methods[currentFinancedMethod] || currentFinancedMethod;
-            paymentDescription = `${methodName} - ${currentInstallments}x de R$ ${installmentValue.toFixed(2)} - Total: R$ ${total.toFixed(2)}`;
+
+        } else {
+            const installmentValue = totals.total / currentInstallments;
+
+            paymentDescription =
+                `${methodName} - ${currentInstallments}x de R$ ${installmentValue.toFixed(2)} - Total: R$ ${totals.total.toFixed(2)}`;
         }
-        
+
         const saleData = {
+            client_id: clientId,
             clientId: clientId,
-            items: currentSale.items.map(item => ({
-                partId: item.partId,
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price,
-                subtotal: item.subtotal
-            })),
-            labor: labor,
-            subtotal: itemsSubtotal,
-            discount: discount,
-            total: total,
-            paymentMode: currentPaymentMode,
-            paymentMethod: currentPaymentMode === 'vista' ? currentPaymentMethod : currentFinancedMethod,
+
+            items: currentSale.items.map(item => {
+                const quantity = Number(item.quantity) || 1;
+                const price = Number(item.price) || 0;
+
+                return {
+                    part_id: item.part_id || item.partId || null,
+                    partId: item.partId || item.part_id || null,
+                    name: item.name || '',
+                    quantity,
+                    price,
+                    subtotal: quantity * price
+                };
+            }),
+
+            subtotal: totals.subtotal,
+            labor: totals.labor,
+            discount_amount: totals.autoDiscount,
+            discount: totals.autoDiscount,
+            total_amount: totals.total,
+            total: totals.total,
+
+            payment_method: paymentMethod,
+            paymentMethod: paymentMethod,
+            payment_description: paymentDescription,
             paymentDescription: paymentDescription,
+
+            payment_mode: currentPaymentMode,
+            paymentMode: currentPaymentMode,
+
             installments: currentPaymentMode !== 'vista' ? currentInstallments : 1,
+            financed_method: currentPaymentMode !== 'vista' ? currentFinancedMethod : null,
             financedMethod: currentPaymentMode !== 'vista' ? currentFinancedMethod : null,
+
             notes: document.getElementById('sale-notes')?.value || '',
-            paymentStatus: initialStatus,
-            clientName: clientName  // ✅ Enviar nome do cliente
+            status: initialStatus,
+            clientName
         };
-        
-        console.log('📊 DADOS ENVIADOS:', {
-            clientId: saleData.clientId,
-            clientName: saleData.clientName,
-            paymentStatus: saleData.paymentStatus,
-            paymentDescription: saleData.paymentDescription,
-            total: saleData.total
-        });
-        
+
         const result = await window.electronAPI.saveSale(saleData);
-        
+
         if (result && result.success) {
-            let message = `✅ Venda finalizada!`;
-            if (initialStatus === 'paid') {
-                message += ' 💰 PAGO!';
+            let message = 'Venda finalizada!';
+
+            if (initialStatus === 'concluida') {
+                message += ' Pago!';
             } else {
-                message += ' 📄 Aguardando pagamento.';
+                message += ' Aguardando pagamento.';
             }
-            message += ` Total: R$ ${total.toFixed(2)}`;
+
+            message += ` Total: R$ ${totals.total.toFixed(2)}`;
+
             showNotification(message, 'success');
-            
+
             hideSaleForm();
             clearSaleForm();
-            
+
             dataCache.delete('sales');
             dataCache.delete('parts');
+
             await Promise.all([
-                loadSales(), 
-                loadDashboard(), 
-                loadParts(), 
-                loadStock(), 
-                loadRecentActivity()
+                loadSales(),
+                loadDashboard(),
+                loadParts(),
+                loadStock()
             ]);
-        } else { 
-            showNotification(result?.error || 'Erro ao finalizar venda', 'error'); 
+
+            if (typeof loadRecentActivity === 'function') {
+                await loadRecentActivity();
+            }
+
+        } else {
+            showNotification(result?.error || 'Erro ao finalizar venda', 'error');
         }
-        
-    } catch (error) { 
-        console.error('❌ Erro ao finalizar venda:', error); 
-        showNotification('Erro ao finalizar venda: ' + error.message, 'error'); 
+
+    } catch (error) {
+        console.error('Erro ao finalizar venda:', error);
+        showNotification('Erro ao finalizar venda: ' + error.message, 'error');
+
     } finally {
         window.isProcessingSale = false;
+
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Venda';
         }
     }
-    
+
     return false;
 }
 
@@ -2862,92 +3625,172 @@ async function editSale(saleId) {
 function showDeleteConfirmationModal(saleId) {
     confirmAction('Excluir permanentemente esta venda?', async () => {
         showNotification('Excluindo...', 'info');
+
         try {
-            const result = await window.electronAPI.deleteSale(saleId, true);
+            const result = await window.electronAPI.deleteSale(saleId);
+
             if (result?.success) {
-                showNotification('Venda excluída! Estoque reabastecido.', 'success');
+                showNotification('Venda excluída com sucesso!', 'success');
+
                 dataCache.delete('sales');
                 dataCache.delete('parts');
-                await Promise.all([loadSales(), loadDashboard(), loadRecentActivity(), loadParts(), loadStock()]);
-            } else { 
-                showNotification(result?.error || 'Erro ao excluir venda', 'error'); 
+
+                await Promise.all([
+                    loadSales(),
+                    loadDashboard(),
+                    loadParts(),
+                    loadStock()
+                ]);
+
+                if (typeof loadRecentActivity === 'function') {
+                    await loadRecentActivity();
+                }
+
+            } else {
+                showNotification(result?.error || 'Erro ao excluir venda', 'error');
             }
-        } catch (error) { 
-            console.error(error); 
-            showNotification('Erro ao excluir venda', 'error'); 
+
+        } catch (error) {
+            console.error('Erro ao excluir venda:', error);
+            showNotification(error.message || 'Erro ao excluir venda', 'error');
         }
     });
 }
 
-// ============ SERVIÇOS ==========
 async function loadServices(search = '') {
     try {
         const services = await window.electronAPI.getServices();
         const clients = await window.electronAPI.getClients();
+
         const tbody = document.getElementById('services-table-body');
+
         if (!tbody) return;
-        
+
         let filtered = services || [];
+
         if (search) {
             const term = search.toLowerCase();
+
             filtered = filtered.filter(s => {
                 const client = clients.find(c => c.id === s.client_id);
-                return (String(s.service_number).includes(term)) ||
-                       (client?.name?.toLowerCase().includes(term)) ||
-                       (s.equipment?.toLowerCase().includes(term));
+                const equipment = s.equipment || s.device_model || '';
+
+                return (
+                    String(s.service_number || '').includes(term) ||
+                    (client?.name || '').toLowerCase().includes(term) ||
+                    equipment.toLowerCase().includes(term) ||
+                    (s.problem || '').toLowerCase().includes(term)
+                );
             });
         }
-        
-        if (!filtered.length) { 
-            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Nenhum serviço registrado</td></tr>'; 
+
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Nenhum serviço registrado</td></tr>';
+
             document.getElementById('total-quotes').textContent = '0';
             document.getElementById('in-progress').textContent = '0';
             document.getElementById('completed').textContent = '0';
             document.getElementById('total-revenue').textContent = 'R$ 0';
-            return; 
+
+            return;
         }
-        
+
         const quotes = filtered.filter(s => s.status === 'orcamento').length;
-        const inProgress = filtered.filter(s => s.status === 'em_andamento' || s.status === 'aguardando_peca').length;
-        const completed = filtered.filter(s => s.status === 'finalizado' || s.status === 'entregue').length;
-        const revenue = filtered.filter(s => s.status === 'finalizado' || s.status === 'entregue')
-            .reduce((sum, s) => sum + (s.value || 0) + ((s.parts || []).reduce((ps, p) => ps + (p.subtotal || 0), 0)), 0);
-        
+
+        const inProgress = filtered.filter(s =>
+            s.status === 'em_andamento' ||
+            s.status === 'aguardando_peca'
+        ).length;
+
+        const completed = filtered.filter(s =>
+            s.status === 'finalizado' ||
+            s.status === 'entregue'
+        ).length;
+
+        const revenue = filtered
+            .filter(s => s.status === 'finalizado' || s.status === 'entregue')
+            .reduce((sum, s) => {
+                const labor = Number(s.value) || 0;
+                const partsTotal = (s.parts || []).reduce((ps, p) => ps + (Number(p.subtotal) || 0), 0);
+
+                return sum + labor + partsTotal;
+            }, 0);
+
         document.getElementById('total-quotes').textContent = quotes;
         document.getElementById('in-progress').textContent = inProgress;
         document.getElementById('completed').textContent = completed;
         document.getElementById('total-revenue').textContent = `R$ ${revenue.toFixed(2)}`;
-        
+
         tbody.innerHTML = filtered.map(s => {
-            // 🔧 CORREÇÃO: Buscar cliente por client_id (snake_case)
             const client = clients.find(c => c.id === s.client_id);
-            const clientName = client ? client.name : (s.client_id ? 'Cliente #' + s.client_id.substring(0, 6) : '-');
-            
-            const total = (s.value || 0) + ((s.parts || []).reduce((sum, p) => sum + (p.subtotal || 0), 0));
-            let statusClass = 'badge-secondary', statusName = getServiceStatusName(s.status);
-            if (s.status === 'orcamento') statusClass = 'badge-info';
-            else if (s.status === 'em_andamento') statusClass = 'badge-warning';
-            else if (s.status === 'finalizado') statusClass = 'badge-success';
-            else if (s.status === 'convertido') { statusClass = 'badge-success'; statusName = 'Convertido'; }
-            
-            return `<tr>
-                <td class="text-center fw-bold">#${s.service_number || s.id.substring(0, 4)}</td>
-                <td>${escapeHtml(clientName)}</td>
-                <td>${escapeHtml(s.equipment || '-')}</td>
-                <td>${(s.problem || '').substring(0, 40)}${(s.problem || '').length > 40 ? '...' : ''}</td>
-                <td class="text-center fw-bold">R$ ${total.toFixed(2)}</td>
-                <td class="text-center"><span class="badge ${statusClass}">${statusName}</span></td>
-                <td class="actions">
-                    <button class="btn-view" onclick="viewService('${s.id}')"><i class="fas fa-eye"></i></button>
-                    <button class="btn-print" onclick="printService('${s.id}')"><i class="fas fa-print"></i></button>
-                    <button class="btn-whatsapp" onclick="sendViaWhatsApp('${s.id}')"><i class="fab fa-whatsapp"></i></button>
-                    ${s.status !== 'convertido' ? `<button class="btn-success" onclick="convertServiceToSale('${s.id}')"><i class="fas fa-shopping-cart"></i></button>` : ''}
-                    <button class="btn-edit" onclick="editService('${s.id}')"><i class="fas fa-edit"></i></button>
-                    <button class="btn-delete" onclick="deleteService('${s.id}')"><i class="fas fa-trash"></i></button>
-                </td>
-            </tr>`;
+
+            const clientName = client
+                ? client.name
+                : (s.client_id ? 'Cliente #' + s.client_id.substring(0, 6) : '-');
+
+            const equipment = s.equipment || s.device_model || '-';
+
+            const partsTotal = (s.parts || []).reduce(
+                (sum, p) => sum + (Number(p.subtotal) || 0),
+                0
+            );
+
+            const total = (Number(s.value) || 0) + partsTotal;
+
+            let statusClass = 'badge-secondary';
+            let statusName = getServiceStatusName(s.status);
+
+            if (s.status === 'orcamento') {
+                statusClass = 'badge-info';
+            } else if (s.status === 'em_andamento') {
+                statusClass = 'badge-warning';
+            } else if (s.status === 'finalizado') {
+                statusClass = 'badge-success';
+            } else if (s.status === 'convertido') {
+                statusClass = 'badge-success';
+                statusName = 'Convertido';
+            }
+
+            return `
+                <tr>
+                    <td class="text-center fw-bold">#${s.service_number || s.id.substring(0, 4)}</td>
+                    <td>${escapeHtml(clientName)}</td>
+                    <td>${escapeHtml(equipment)}</td>
+                    <td>${escapeHtml((s.problem || '').substring(0, 40))}${(s.problem || '').length > 40 ? '...' : ''}</td>
+                    <td class="text-center fw-bold">R$ ${total.toFixed(2)}</td>
+                    <td class="text-center">
+                        <span class="badge ${statusClass}">${statusName}</span>
+                    </td>
+                    <td class="actions">
+                        <button class="btn-view" onclick="viewService('${s.id}')" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-print" onclick="printService('${s.id}')" title="Imprimir">
+                            <i class="fas fa-print"></i>
+                        </button>
+                        <button class="btn-whatsapp" onclick="sendViaWhatsApp('${s.id}')" title="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        ${s.status !== 'convertido' ? `
+                            <button class="btn-success" onclick="convertServiceToSale('${s.id}')" title="Converter em venda">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        ` : ''}
+                        <button class="btn-edit" onclick="editService('${s.id}')" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete" onclick="deleteService('${s.id}')" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
         }).join('');
-    } catch (error) { console.error(error); }
+
+    } catch (error) {
+        console.error('Erro ao carregar serviços:', error);
+        showNotification('Erro ao carregar serviços', 'error');
+    }
 }
 
 async function viewService(id) {
@@ -2987,58 +3830,132 @@ async function viewService(id) {
 
 async function saveService(e) {
     e.preventDefault();
+
+    const id = document.getElementById('service-id')?.value || null;
+    const clientId = document.getElementById('service-client')?.value || null;
+    const equipment = document.getElementById('service-equipment')?.value?.trim() || '';
+    const problem = document.getElementById('service-problem')?.value?.trim() || '';
+
     const data = {
-        id: document.getElementById('service-id').value || null,
-        clientId: document.getElementById('service-client').value,
-        equipment: document.getElementById('service-equipment').value,
-        problem: document.getElementById('service-problem').value,
-        solution: document.getElementById('service-solution').value,
-        value: parseFloat(document.getElementById('service-value').value) || 0,
-        status: document.getElementById('service-status').value,
-        notes: document.getElementById('service-notes').value,
+        id,
+        client_id: clientId,
+        equipment,
+        device_model: equipment,
+        problem,
+        solution: document.getElementById('service-solution')?.value?.trim() || '',
+        value: parseFloat(document.getElementById('service-value')?.value) || 0,
+        status: document.getElementById('service-status')?.value || 'orcamento',
+        notes: document.getElementById('service-notes')?.value?.trim() || '',
         parts: currentServiceParts
     };
-    if (!data.clientId) { showNotification('Selecione um cliente', 'error'); return; }
-    if (!data.problem) { showNotification('Descreva o problema', 'error'); return; }
+
+    if (!data.client_id) {
+        showNotification('Selecione um cliente', 'error');
+        return;
+    }
+
+    if (!data.equipment) {
+        showNotification('Informe o equipamento', 'error');
+        return;
+    }
+
+    if (!data.problem) {
+        showNotification('Descreva o problema', 'error');
+        return;
+    }
+
     try {
         const result = await window.electronAPI.saveService(data);
+
         if (result.success) {
-            showNotification('Serviço salvo com sucesso!', 'success');
+            showNotification(
+                id ? 'Serviço atualizado com sucesso!' : 'Serviço cadastrado com sucesso!',
+                'success'
+            );
+
             hideServiceForm();
+
+            document.getElementById('service-form')?.reset();
+            document.getElementById('service-id').value = '';
+
+            currentServiceParts = [];
+
             dataCache.delete('services');
+
             await loadServices();
             await loadDashboard();
-        } else { showNotification('Erro ao salvar serviço', 'error'); }
-    } catch (error) { console.error(error); showNotification('Erro ao salvar serviço', 'error'); }
+
+        } else {
+            showNotification(result.error || 'Erro ao salvar serviço', 'error');
+        }
+
+    } catch (error) {
+        console.error('Erro ao salvar serviço:', error);
+        showNotification(error.message || 'Erro ao salvar serviço', 'error');
+    }
 }
 
 async function showServiceForm(id = null) {
-    const fc = document.getElementById('service-form-container');
-    if (!fc) return;
-    fc.classList.remove('hidden');
-    await loadServiceClientsSelect();
-    await loadServicePartsSelect();
-    currentServiceParts = [];
-    if (id) {
+    const container = document.getElementById('service-form-container');
+
+    if (!container) return;
+
+    container.classList.remove('hidden');
+
+    try {
+        await loadServiceClientsSelect();
+        await loadServicePartsSelect();
+
+        currentServiceParts = [];
+
+        // Novo serviço
+        if (!id) {
+            document.getElementById('service-form')?.reset();
+            document.getElementById('service-id').value = '';
+
+            const status = document.getElementById('service-status');
+            if (status) status.value = 'orcamento';
+
+            updateServicePartsTable();
+            recalcServiceTotal();
+
+            return;
+        }
+
+        // Editar serviço
         const services = await window.electronAPI.getServices();
         const service = services.find(s => s.id === id);
-        if (service) {
-            document.getElementById('service-id').value = service.id;
-            document.getElementById('service-client').value = service.clientId || '';
-            document.getElementById('service-equipment').value = service.equipment || '';
-            document.getElementById('service-problem').value = service.problem || '';
-            document.getElementById('service-solution').value = service.solution || '';
-            document.getElementById('service-value').value = service.value || 0;
-            document.getElementById('service-status').value = service.status || 'orcamento';
-            document.getElementById('service-notes').value = service.notes || '';
-            if (service.parts) currentServiceParts = [...service.parts];
+
+        if (!service) {
+            showNotification('Serviço não encontrado', 'error');
+            return;
         }
-    } else { 
-        document.getElementById('service-form').reset(); 
-        document.getElementById('service-id').value = ''; 
+
+        const equipment =
+            service.equipment ||
+            service.device_model ||
+            '';
+
+        document.getElementById('service-id').value = service.id || '';
+        document.getElementById('service-client').value = service.client_id || service.clientId || '';
+        document.getElementById('service-equipment').value = equipment;
+        document.getElementById('service-problem').value = service.problem || '';
+        document.getElementById('service-solution').value = service.solution || '';
+        document.getElementById('service-value').value = service.value || 0;
+        document.getElementById('service-status').value = service.status || 'orcamento';
+        document.getElementById('service-notes').value = service.notes || '';
+
+        currentServiceParts = Array.isArray(service.parts)
+            ? service.parts
+            : [];
+
+        updateServicePartsTable();
+        recalcServiceTotal();
+
+    } catch (error) {
+        console.error('Erro ao abrir formulário de serviço:', error);
+        showNotification('Erro ao carregar serviço', 'error');
     }
-    updateServicePartsTable();
-    recalcServiceTotal();
 }
 
 async function loadServiceClientsSelect() {
@@ -3049,8 +3966,23 @@ async function loadServiceClientsSelect() {
 
 async function loadServicePartsSelect() {
     const parts = await window.electronAPI.getParts();
-    document.getElementById('service-part').innerHTML = '<option value="">Selecione uma peça...</option>' + 
-        parts.map(p => `<option value="${p.id}" data-price="${p.price || 0}">${p.name} (Estoque: ${p.quantity})</option>`).join('');
+
+    const select = document.getElementById('service-part');
+
+    if (!select) return;
+
+    select.innerHTML =
+        '<option value="">Selecione uma peça...</option>' +
+        parts.map(p => {
+            const price = Number(p.sale_price || p.price || 0);
+            const quantity = Number(p.quantity || 0);
+
+            return `
+                <option value="${p.id}" data-price="${price}">
+                    ${escapeHtml(p.name)} (Estoque: ${quantity})
+                </option>
+            `;
+        }).join('');
 }
 
 function updateServicePartPrice() {
@@ -3131,16 +4063,22 @@ async function deleteService(serviceId) {
     confirmAction('Excluir este serviço?', async () => {
         try {
             const result = await window.electronAPI.deleteService(serviceId);
+
             if (result?.success) {
-                showNotification('Serviço excluído!', 'success');
+                showNotification('Serviço excluído com sucesso!', 'success');
+
                 dataCache.delete('services');
-                await Promise.all([loadServices(), loadDashboard()]);
-            } else { 
-                showNotification(result?.error || 'Erro ao excluir serviço', 'error'); 
+
+                await loadServices();
+                await loadDashboard();
+
+            } else {
+                showNotification(result?.error || 'Erro ao excluir serviço', 'error');
             }
-        } catch (error) { 
-            console.error(error); 
-            showNotification('Erro ao excluir serviço', 'error'); 
+
+        } catch (error) {
+            console.error('Erro ao excluir serviço:', error);
+            showNotification(error.message || 'Erro ao excluir serviço', 'error');
         }
     });
 }
