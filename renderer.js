@@ -4421,11 +4421,11 @@ async function loadPurchasesTable(search = '') {
             const statusText = p.status === 'conferida' ? 'Conferida' : 'Pendente';
             return `
             <tr>
-                <td>${p.invoiceNumber || '-'}</td>
-                <td>${p.issueDate ? new Date(p.issueDate).toLocaleDateString('pt-BR') : '-'}</td>
-                <td>${p.supplierName || '-'}</td>
+                <td>${p.invoiceNumber || p.invoice_number || '-'}</td>
+                <td>${(p.issueDate || p.issue_date || p.created_at) ? new Date(p.issueDate || p.issue_date || p.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                <td>${p.supplierName || p.supplier_name || '-'}</td>
                 <td class="text-center">${p.items?.length || 0}</td>
-                <td class="text-center fw-bold">R$ ${(p.total || 0).toFixed(2)}</td>
+                <td class="text-center fw-bold">R$ ${(Number(p.total ?? p.total_amount ?? 0) || 0).toFixed(2)}</td>
                 <td class="text-center"><span class="badge ${statusClass}">${statusText}</span></td>
                 <td class="actions">
                     <button class="btn-view" onclick="viewPurchase('${p.id}')"><i class="fas fa-eye"></i></button>
@@ -4729,37 +4729,76 @@ async function viewPurchase(id) {
     try {
         const purchases = await window.electronAPI.getPurchases();
         const purchase = purchases.find(p => p.id === id);
-        if (!purchase) { showNotification('Compra não encontrada', 'error'); return; }
-        
-        const itemsHtml = purchase.items.map(i => `
-            <tr>
-                <td>${i.partName}</td>
-                <td class="text-center">${i.quantity}</td>
-                <td class="text-center">R$ ${(i.unitPrice || 0).toFixed(2)}</td>
-                <td class="text-center">R$ ${(i.total || 0).toFixed(2)}</td>
-            </tr>
-        `).join('');
-        
+
+        if (!purchase) {
+            showNotification('Compra não encontrada', 'error');
+            return;
+        }
+
+        const invoiceNumber = purchase.invoiceNumber || purchase.invoice_number || '-';
+        const supplierName = purchase.supplierName || purchase.supplier_name || '-';
+        const issueDate = purchase.issueDate || purchase.issue_date || purchase.created_at || null;
+        const total = Number(purchase.total ?? purchase.total_amount ?? 0) || 0;
+        const items = Array.isArray(purchase.items) ? purchase.items : [];
+
+        const itemsHtml = items.map(i => {
+            const name = i.partName || i.name || i.description || '-';
+            const quantity = Number(i.quantity || 0);
+            const unitPrice = Number(i.unitPrice ?? i.price ?? 0);
+            const itemTotal = Number(i.total ?? quantity * unitPrice);
+
+            return `
+                <tr>
+                    <td>${escapeHtml(name)}</td>
+                    <td class="text-center">${quantity}</td>
+                    <td class="text-center">R$ ${unitPrice.toFixed(2)}</td>
+                    <td class="text-center">R$ ${itemTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+
         const body = `
             <div style="line-height:2;">
-                <strong>NFe:</strong> ${purchase.invoiceNumber}<br>
-                <strong>Fornecedor:</strong> ${purchase.supplierName}<br>
-                <strong>Data Emissão:</strong> ${new Date(purchase.issueDate).toLocaleDateString('pt-BR')}<br>
-                <strong>Total:</strong> R$ ${(purchase.total || 0).toFixed(2)}<br>
+                <strong>NFe:</strong> ${escapeHtml(invoiceNumber)}<br>
+                <strong>Fornecedor:</strong> ${escapeHtml(supplierName)}<br>
+                <strong>Data Emissão:</strong> ${issueDate ? new Date(issueDate).toLocaleDateString('pt-BR') : '-'}<br>
+                <strong>Total:</strong> R$ ${total.toFixed(2)}<br>
             </div>
+
             <table style="margin-top:15px;width:100%;">
-                <thead><tr><th>Item</th><th>Qtd</th><th>Preço</th><th>Total</th></tr></thead>
-                <tbody>${itemsHtml}</tbody>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qtd</th>
+                        <th>Preço</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml || '<tr><td colspan="4" class="no-data">Nenhum item encontrado</td></tr>'}
+                </tbody>
             </table>
         `;
-        
-        showGenericModal(`Compra NFe ${purchase.invoiceNumber}`, body, [
-            { label: 'Editar', className: 'btn-primary', onClick: () => { closeModal(); editPurchase(id); } },
-            { label: 'Fechar', className: 'btn-secondary', onClick: () => closeModal() }
+
+        showGenericModal(`Compra NFe ${escapeHtml(invoiceNumber)}`, body, [
+            {
+                label: 'Editar',
+                className: 'btn-primary',
+                onClick: () => {
+                    closeModal();
+                    editPurchase(id);
+                }
+            },
+            {
+                label: 'Fechar',
+                className: 'btn-secondary',
+                onClick: () => closeModal()
+            }
         ]);
+
     } catch (error) {
         console.error(error);
-        showNotification('Erro ao visualizar', 'error');
+        showNotification('Erro ao visualizar compra', 'error');
     }
 }
 
