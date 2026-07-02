@@ -1502,3 +1502,532 @@ tbody tr:last-child td {
     margin-left: 8px;
     vertical-align: middle;
 }
+
+/* =========================================================
+   PADRÃO FINAL DE TABELAS - SMART TECH REPARO
+   Aplica em Clientes, Fornecedores, Peças, Compras,
+   Vendas, Serviços, Financeiro e Estoque
+========================================================= */
+
+/* Container das tabelas */
+.table-container {
+    width: 100%;
+    max-width: 100%;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+    overflow-y: visible;
+    margin: 20px 0;
+}
+
+/* Título dentro do card da tabela */
+.table-container h3,
+.table-container h4 {
+    padding: 16px 20px;
+    margin: 0;
+    background: #ffffff;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+/* Barra interna acima da tabela, como busca em compras/financeiro */
+.table-container > .header-actions {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--gray-200);
+    background: #ffffff;
+}
+
+/* Tabela base */
+.table-container table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+    table-layout: auto !important;
+}
+
+/* Cabeçalho da tabela */
+.table-container thead th {
+    background: #f8fafc;
+    color: #526174;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 18px;
+    border-bottom: 2px solid var(--gray-300);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Células */
+.table-container tbody td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--gray-200);
+    color: var(--gray-800);
+    font-size: 14px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+/* Última linha sem borda inferior */
+.table-container tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Hover limpo */
+.table-container tbody tr:hover {
+    background: #eef7ff;
+}
+
+/* Coluna de ações padrão */
+.table-container th:last-child,
+.table-container td:last-child {
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+    text-align: center;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/* Botões de ação sempre juntos */
+.actions {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap !important;
+    width: 100%;
+    min-width: 110px;
+}
+
+/* Botões não encolhem nem somem */
+.btn-view,
+.btn-edit,
+.btn-delete,
+.btn-print,
+.btn-whatsapp {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    flex: 0 0 34px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    justify-content: center;
+    align-items: center;
+    overflow: visible !important;
+}
+
+/* Colunas numéricas centralizadas */
+.table-container th:nth-child(4),
+.table-container td:nth-child(4),
+.table-container th:nth-child(5),
+.table-container td:nth-child(5),
+.table-container th:nth-child(6),
+.table-container td:nth-child(6),
+.table-container th:nth-child(7),
+.table-container td:nth-child(7) {
+    text-align: center;
+}
+
+/* Primeira coluna com texto mais natural */
+.table-container th:first-child,
+.table-container td:first-child {
+    text-align: left;
+}
+
+/* Textos longos podem quebrar em colunas principais */
+#clients-table td:nth-child(1),
+#suppliers-table td:nth-child(1),
+#parts-table td:nth-child(1),
+#parts-table td:nth-child(4),
+#services-table td:nth-child(3),
+#services-table td:nth-child(4),
+#purchases-table td:nth-child(3),
+#expenses-table td:nth-child(3),
+#sales-history-table td:nth-child(4) {
+    white-space: normal;
+}
+
+/* Mantém subtítulo pequeno, como CPF em clientes */
+.table-container small {
+    display: block;
+    color: var(--gray-500);
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+/* Badges alinhadas */
+.badge,
+.badge-success,
+.badge-warning,
+.badge-danger,
+.badge-info,
+.badge-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 5px 12px;
+    border-radius: 999px;
+}
+
+/* =========================================================
+   LARGURAS PADRÃO POR TABELA
+========================================================= */
+
+/* Clientes */
+#clients-table {
+    min-width: 980px;
+}
+
+#clients-table th:nth-child(1),
+#clients-table td:nth-child(1) {
+    width: 25%;
+}
+
+#clients-table th:nth-child(2),
+#clients-table td:nth-child(2) {
+    width: 14%;
+}
+
+#clients-table th:nth-child(3),
+#clients-table td:nth-child(3) {
+    width: 22%;
+}
+
+#clients-table th:nth-child(4),
+#clients-table td:nth-child(4) {
+    width: 14%;
+}
+
+#clients-table th:nth-child(5),
+#clients-table td:nth-child(5) {
+    width: 12%;
+    text-align: center;
+}
+
+/* Fornecedores */
+#suppliers-table {
+    min-width: 1100px;
+}
+
+#suppliers-table th:nth-child(1),
+#suppliers-table td:nth-child(1) {
+    width: 20%;
+}
+
+#suppliers-table th:nth-child(2),
+#suppliers-table td:nth-child(2) {
+    width: 15%;
+}
+
+#suppliers-table th:nth-child(3),
+#suppliers-table td:nth-child(3) {
+    width: 13%;
+}
+
+#suppliers-table th:nth-child(4),
+#suppliers-table td:nth-child(4) {
+    width: 18%;
+}
+
+#suppliers-table th:nth-child(5),
+#suppliers-table td:nth-child(5) {
+    width: 12%;
+}
+
+#suppliers-table th:nth-child(6),
+#suppliers-table td:nth-child(6) {
+    width: 12%;
+}
+
+/* Peças */
+#parts-table {
+    min-width: 1120px;
+}
+
+#parts-table th:nth-child(1),
+#parts-table td:nth-child(1) {
+    width: 24%;
+}
+
+#parts-table th:nth-child(2),
+#parts-table td:nth-child(2) {
+    width: 10%;
+}
+
+#parts-table th:nth-child(3),
+#parts-table td:nth-child(3) {
+    width: 10%;
+    text-align: center;
+}
+
+#parts-table th:nth-child(4),
+#parts-table td:nth-child(4) {
+    width: 20%;
+}
+
+#parts-table th:nth-child(5),
+#parts-table td:nth-child(5) {
+    width: 12%;
+    text-align: center;
+}
+
+#parts-table th:nth-child(6),
+#parts-table td:nth-child(6),
+#parts-table th:nth-child(7),
+#parts-table td:nth-child(7) {
+    width: 10%;
+    text-align: center;
+}
+
+/* Compras */
+#purchases-table {
+    min-width: 1050px;
+}
+
+#purchases-table th:nth-child(1),
+#purchases-table td:nth-child(1) {
+    width: 12%;
+}
+
+#purchases-table th:nth-child(2),
+#purchases-table td:nth-child(2) {
+    width: 12%;
+}
+
+#purchases-table th:nth-child(3),
+#purchases-table td:nth-child(3) {
+    width: 28%;
+}
+
+#purchases-table th:nth-child(4),
+#purchases-table td:nth-child(4) {
+    width: 10%;
+    text-align: center;
+}
+
+#purchases-table th:nth-child(5),
+#purchases-table td:nth-child(5) {
+    width: 14%;
+    text-align: center;
+}
+
+#purchases-table th:nth-child(6),
+#purchases-table td:nth-child(6) {
+    width: 12%;
+    text-align: center;
+}
+
+/* Serviços */
+#services-table {
+    min-width: 1120px;
+}
+
+#services-table th:nth-child(1),
+#services-table td:nth-child(1) {
+    width: 13%;
+}
+
+#services-table th:nth-child(2),
+#services-table td:nth-child(2) {
+    width: 18%;
+}
+
+#services-table th:nth-child(3),
+#services-table td:nth-child(3) {
+    width: 18%;
+}
+
+#services-table th:nth-child(4),
+#services-table td:nth-child(4) {
+    width: 24%;
+}
+
+#services-table th:nth-child(5),
+#services-table td:nth-child(5) {
+    width: 12%;
+    text-align: center;
+}
+
+#services-table th:nth-child(6),
+#services-table td:nth-child(6) {
+    width: 12%;
+    text-align: center;
+}
+
+/* Histórico de vendas */
+#sales-history-table {
+    min-width: 1120px;
+}
+
+#sales-history-table th:nth-child(1),
+#sales-history-table td:nth-child(1) {
+    width: 12%;
+}
+
+#sales-history-table th:nth-child(2),
+#sales-history-table td:nth-child(2) {
+    width: 12%;
+}
+
+#sales-history-table th:nth-child(3),
+#sales-history-table td:nth-child(3) {
+    width: 18%;
+}
+
+#sales-history-table th:nth-child(4),
+#sales-history-table td:nth-child(4) {
+    width: 22%;
+}
+
+#sales-history-table th:nth-child(5),
+#sales-history-table td:nth-child(5) {
+    width: 12%;
+    text-align: center;
+}
+
+#sales-history-table th:nth-child(6),
+#sales-history-table td:nth-child(6) {
+    width: 14%;
+    text-align: center;
+}
+
+#sales-history-table th:nth-child(7),
+#sales-history-table td:nth-child(7) {
+    width: 12%;
+    text-align: center;
+}
+
+/* Financeiro / despesas */
+#expenses-table {
+    min-width: 1050px;
+}
+
+#expenses-table th:nth-child(1),
+#expenses-table td:nth-child(1) {
+    width: 12%;
+}
+
+#expenses-table th:nth-child(2),
+#expenses-table td:nth-child(2) {
+    width: 15%;
+}
+
+#expenses-table th:nth-child(3),
+#expenses-table td:nth-child(3) {
+    width: 26%;
+}
+
+#expenses-table th:nth-child(4),
+#expenses-table td:nth-child(4) {
+    width: 12%;
+    text-align: center;
+}
+
+#expenses-table th:nth-child(5),
+#expenses-table td:nth-child(5) {
+    width: 13%;
+    text-align: center;
+}
+
+#expenses-table th:nth-child(6),
+#expenses-table td:nth-child(6) {
+    width: 12%;
+    text-align: center;
+}
+
+/* Estoque */
+#stock-table {
+    min-width: 1000px;
+}
+
+#stock-table th:nth-child(1),
+#stock-table td:nth-child(1) {
+    width: 25%;
+}
+
+#stock-table th:nth-child(2),
+#stock-table td:nth-child(2) {
+    width: 14%;
+}
+
+#stock-table th:nth-child(3),
+#stock-table td:nth-child(3) {
+    width: 20%;
+}
+
+#stock-table th:nth-child(4),
+#stock-table td:nth-child(4) {
+    width: 12%;
+    text-align: center;
+}
+
+#stock-table th:nth-child(5),
+#stock-table td:nth-child(5) {
+    width: 16%;
+    text-align: center;
+}
+
+#stock-table th:nth-child(6),
+#stock-table td:nth-child(6) {
+    width: 13%;
+    text-align: center;
+}
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (max-width: 1200px) {
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table-container table {
+        width: max-content;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        border-radius: 10px;
+    }
+
+    .table-container::after {
+        content: "Arraste para o lado para ver mais →";
+        display: block;
+        padding: 9px 14px;
+        font-size: 12px;
+        color: var(--gray-500);
+        background: var(--gray-100);
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .table-container th,
+    .table-container td {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+
+    .table-container th:last-child,
+    .table-container td:last-child {
+        position: sticky;
+        right: 0;
+        background: #ffffff;
+        z-index: 2;
+        box-shadow: -4px 0 8px rgba(0,0,0,0.05);
+    }
+
+    .table-container thead th:last-child {
+        background: #f8fafc;
+        z-index: 3;
+    }
+}
