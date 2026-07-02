@@ -1389,197 +1389,115 @@ tbody tr:last-child td {
     }
 }
 
-/* ============ AJUSTE FINAL DAS TABELAS ============ */
+/* ============ CORREÇÃO RESPONSIVA FINAL DAS TABELAS ============ */
 
-/* Impede a tabela de espalhar exageradamente as colunas */
+/* A tabela não deve cortar conteúdo */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Remove o table-layout fixed que cortava os botões */
 .table-container table {
     width: 100%;
-    table-layout: fixed;
+    min-width: 900px;
+    table-layout: auto !important;
+    border-collapse: collapse;
 }
 
-/* Padroniza células */
+/* Não cortar células */
 .table-container th,
 .table-container td {
+    overflow: visible !important;
+    text-overflow: unset !important;
+    white-space: nowrap;
     vertical-align: middle;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-/* Clientes */
-#clients-table th:nth-child(1),
-#clients-table td:nth-child(1) {
-    width: 24%;
+/* Nome pode quebrar linha se for muito grande */
+#clients-table td:first-child,
+#parts-table td:first-child,
+#suppliers-table td:first-child,
+#services-table td:nth-child(4),
+#purchases-table td:nth-child(3),
+#expenses-table td:nth-child(3) {
+    white-space: normal;
 }
 
-#clients-table th:nth-child(2),
-#clients-table td:nth-child(2) {
-    width: 15%;
-}
-
-#clients-table th:nth-child(3),
-#clients-table td:nth-child(3) {
-    width: 22%;
-}
-
-#clients-table th:nth-child(4),
-#clients-table td:nth-child(4) {
-    width: 14%;
-}
-
-#clients-table th:nth-child(5),
-#clients-table td:nth-child(5) {
-    width: 13%;
-}
-
-#clients-table th:nth-child(6),
-#clients-table td:nth-child(6) {
-    width: 12%;
+/* Coluna de ações nunca pode ser espremida */
+.table-container th:last-child,
+.table-container td:last-child {
+    width: 130px;
+    min-width: 130px;
+    max-width: 150px;
     text-align: center;
 }
 
-/* Fornecedores */
-#suppliers-table th:nth-child(1),
-#suppliers-table td:nth-child(1) {
-    width: 20%;
-}
-
-#suppliers-table th:nth-child(2),
-#suppliers-table td:nth-child(2) {
-    width: 15%;
-}
-
-#suppliers-table th:nth-child(3),
-#suppliers-table td:nth-child(3) {
-    width: 13%;
-}
-
-#suppliers-table th:nth-child(4),
-#suppliers-table td:nth-child(4) {
-    width: 18%;
-}
-
-#suppliers-table th:nth-child(5),
-#suppliers-table td:nth-child(5) {
-    width: 12%;
-}
-
-#suppliers-table th:nth-child(6),
-#suppliers-table td:nth-child(6) {
-    width: 12%;
-}
-
-#suppliers-table th:nth-child(7),
-#suppliers-table td:nth-child(7) {
-    width: 10%;
-    text-align: center;
-}
-
-/* Peças */
-#parts-table th:nth-child(1),
-#parts-table td:nth-child(1) {
-    width: 24%;
-}
-
-#parts-table th:nth-child(2),
-#parts-table td:nth-child(2) {
-    width: 10%;
-}
-
-#parts-table th:nth-child(3),
-#parts-table td:nth-child(3) {
-    width: 12%;
-}
-
-#parts-table th:nth-child(4),
-#parts-table td:nth-child(4) {
-    width: 20%;
-}
-
-#parts-table th:nth-child(5),
-#parts-table td:nth-child(5) {
-    width: 10%;
-    text-align: center;
-}
-
-#parts-table th:nth-child(6),
-#parts-table td:nth-child(6),
-#parts-table th:nth-child(7),
-#parts-table td:nth-child(7) {
-    width: 10%;
-    text-align: center;
-}
-
-#parts-table th:nth-child(8),
-#parts-table td:nth-child(8) {
-    width: 10%;
-    text-align: center;
-}
-
-/* Compras */
-#purchases-table th:nth-child(1),
-#purchases-table td:nth-child(1) {
-    width: 12%;
-}
-
-#purchases-table th:nth-child(2),
-#purchases-table td:nth-child(2) {
-    width: 12%;
-}
-
-#purchases-table th:nth-child(3),
-#purchases-table td:nth-child(3) {
-    width: 28%;
-}
-
-#purchases-table th:nth-child(4),
-#purchases-table td:nth-child(4) {
-    width: 10%;
-    text-align: center;
-}
-
-#purchases-table th:nth-child(5),
-#purchases-table td:nth-child(5) {
-    width: 14%;
-    text-align: center;
-}
-
-#purchases-table th:nth-child(6),
-#purchases-table td:nth-child(6) {
-    width: 12%;
-    text-align: center;
-}
-
-#purchases-table th:nth-child(7),
-#purchases-table td:nth-child(7) {
-    width: 12%;
-    text-align: center;
-}
-
-/* Mantém os botões de ação juntos e centralizados */
+/* Botões de ação sempre visíveis */
 .actions {
-    display: flex;
+    display: flex !important;
     justify-content: center;
     align-items: center;
     gap: 6px;
-    flex-wrap: nowrap;
-    width: 100%;
+    flex-wrap: nowrap !important;
+    min-width: 110px;
 }
 
-/* Evita que botões de ação estiquem */
+/* Botões não podem encolher nem ser cortados */
 .btn-view,
 .btn-edit,
 .btn-delete,
 .btn-print,
 .btn-whatsapp {
-    flex: 0 0 34px;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    flex: 0 0 34px !important;
+    padding: 0 !important;
+    overflow: visible !important;
 }
 
-/* Evita que nomes longos quebrem o layout */
-.table-container td {
-    white-space: nowrap;
+/* Tabela de peças: largura mínima maior por ter muitas colunas */
+#parts-table {
+    min-width: 1150px;
 }
 
-/* Permite nome + CPF em duas linhas no cliente sem quebrar tudo */
-#clients-table td:first-child {
-    white-space: normal;
+/* Tabela de compras */
+#purchases-table {
+    min-width: 1050px;
+}
+
+/* Tabela de clientes */
+#clients-table {
+    min-width: 950px;
+}
+
+/* Tabela de fornecedores */
+#suppliers-table {
+    min-width: 1050px;
+}
+
+/* Tabela de serviços */
+#services-table {
+    min-width: 1100px;
+}
+
+/* Melhor espaçamento no mobile */
+@media (max-width: 900px) {
+    .table-container {
+        border-radius: 10px;
+    }
+
+    .table-container::after {
+        content: "Arraste para o lado para ver mais →";
+        display: block;
+        padding: 8px 12px;
+        font-size: 12px;
+        color: var(--gray-500);
+        background: var(--gray-100);
+        border-top: 1px solid var(--gray-200);
+    }
 }
