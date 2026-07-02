@@ -3419,8 +3419,11 @@ async function finalizeSale(e) {
         const clientSelect = document.getElementById('sale-client');
         const clientId = clientSelect?.value || null;
 
-        if (!currentSale.items || currentSale.items.length === 0) {
-            showNotification('Adicione pelo menos um item à venda', 'error');
+        const totals = calculateFinalTotal();
+        const laborValue = Number(totals.labor || 0);
+
+        if ((!currentSale.items || currentSale.items.length === 0) && laborValue <= 0) {
+            showNotification('Adicione uma peça ou informe um valor de mão de obra para finalizar a venda.', 'error');
             return false;
         }
 
@@ -3431,8 +3434,6 @@ async function finalizeSale(e) {
             const client = clients.find(c => c.id === clientId);
             clientName = client ? client.name : '';
         }
-
-        const totals = calculateFinalTotal();
 
         let initialStatus = 'pendente';
 
@@ -3476,23 +3477,48 @@ async function finalizeSale(e) {
                 `${methodName} - ${currentInstallments}x de R$ ${installmentValue.toFixed(2)} - Total: R$ ${totals.total.toFixed(2)}`;
         }
 
-        const saleData = {
-            client_id: clientId,
-            clientId: clientId,
-
-            items: currentSale.items.map(item => {
+        const finalItems = Array.isArray(currentSale.items)
+            ? currentSale.items.map(item => {
                 const quantity = Number(item.quantity) || 1;
                 const price = Number(item.price) || 0;
 
                 return {
                     part_id: item.part_id || item.partId || null,
                     partId: item.partId || item.part_id || null,
-                    name: item.name || '',
+                    name: item.name || item.partName || '',
+                    partName: item.partName || item.name || '',
+                    type: 'part',
+                    item_type: 'part',
                     quantity,
                     price,
-                    subtotal: quantity * price
+                    unitPrice: price,
+                    subtotal: quantity * price,
+                    total: quantity * price
                 };
-            }),
+            })
+            : [];
+
+        if (laborValue > 0) {
+            finalItems.push({
+                part_id: null,
+                partId: null,
+                name: 'Mão de obra',
+                partName: 'Mão de obra',
+                type: 'labor',
+                item_type: 'labor',
+                quantity: 1,
+                price: laborValue,
+                unitPrice: laborValue,
+                subtotal: laborValue,
+                total: laborValue
+            });
+        }
+
+        const saleData = {
+            client_id: clientId,
+            clientId: clientId,
+
+            items: finalItems,
 
             subtotal: totals.subtotal,
             labor: totals.labor,
