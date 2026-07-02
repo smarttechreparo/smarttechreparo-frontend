@@ -339,7 +339,12 @@ isCashOpen: async () => {
     const result = await requestJson(`${API_URL}/cash/status`);
     return !!result.data?.isOpen;
 },
-
+    
+getCashStatus: async () => {
+    const result = await requestJson(`${API_URL}/cash/status`);
+    return result.data || {};
+},
+    
     // Checklist
     getChecklists: async () => {
         const result = await requestJson(`${API_URL}/checklist`);
@@ -5624,10 +5629,18 @@ function normalizeCashEntry(entry) {
 
 async function loadCashPanel() {
     try {
+        const status = await window.electronAPI.getCashStatus().catch(() => ({}));
         const entries = await window.electronAPI.getCashEntries().catch(() => []);
-        const isOpen = await window.electronAPI.isCashOpen().catch(() => false);
 
         const normalized = (entries || []).map(normalizeCashEntry);
+
+        const openingBalance = Number(
+            status.opening_balance ??
+            status.openingBalance ??
+            status.cash_register?.opening_balance ??
+            status.cashRegister?.openingBalance ??
+            0
+        ) || 0;
 
         const totalEntries = normalized
             .filter(item => item.type === 'entrada')
@@ -5637,7 +5650,13 @@ async function loadCashPanel() {
             .filter(item => item.type === 'saida')
             .reduce((sum, item) => sum + item.amount, 0);
 
-        const balance = totalEntries - totalExits;
+        const balance = openingBalance + totalEntries - totalExits;
+
+        const isOpen =
+            status.isOpen === true ||
+            status.is_open === true ||
+            status.status === 'aberto' ||
+            status.cash_register?.status === 'aberto';
 
         const setText = (id, value) => {
             const el = document.getElementById(id);
@@ -5653,16 +5672,32 @@ async function loadCashPanel() {
 
         if (!tbody) return;
 
-        if (!normalized.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="no-data">Nenhuma movimentação registrada</td></tr>';
-            return;
+        const rows = [];
+
+        if (openingBalance > 0) {
+            rows.push(`
+                <tr>
+                    <td>${new Date().toLocaleString('pt-BR')}</td>
+                    <td><span class="badge badge-success">Abertura</span></td>
+                    <td>Saldo inicial do caixa</td>
+                    <td>dinheiro</td>
+                    <td class="fw-bold">${formatCurrencyBR(openingBalance)}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-view" title="Saldo inicial">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `);
         }
 
-        tbody.innerHTML = normalized.map(item => {
+        normalized.forEach(item => {
             const typeLabel = item.type === 'saida' ? 'Saída' : 'Entrada';
             const badgeClass = item.type === 'saida' ? 'badge-danger' : 'badge-success';
 
-            return `
+            rows.push(`
                 <tr>
                     <td>${new Date(item.created_at).toLocaleString('pt-BR')}</td>
                     <td><span class="badge ${badgeClass}">${typeLabel}</span></td>
@@ -5677,8 +5712,15 @@ async function loadCashPanel() {
                         </div>
                     </td>
                 </tr>
-            `;
-        }).join('');
+            `);
+        });
+
+        if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="no-data">Nenhuma movimentação registrada</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = rows.join('');
 
     } catch (error) {
         console.error('Erro ao carregar caixa:', error);
@@ -5917,6 +5959,11 @@ async function loadChecklistPanel() {
 async function showChecklistForm() {
     try {
         const services = await window.electronAPI.getServices().catch(() => []);
+        if (!services || services.length === 0) {
+    showNotification('Cadastre uma OS/Serviço antes de criar um checklist.', 'warning');
+    showTab('services');
+    return;
+}
 
         const serviceOptions = services.map(service => {
             const label = `${service.service_number || service.id?.substring(0, 8) || ''} - ${service.device_model || service.equipment || 'Equipamento'}`;
