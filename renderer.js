@@ -5602,6 +5602,494 @@ async function loadChecklistPanel() {
     }
 }
 
+// ============ CAIXA E CHECKLIST - WEB ============
+
+function formatCurrencyBR(value) {
+    return `R$ ${(Number(value) || 0).toFixed(2)}`;
+}
+
+function normalizeCashEntry(entry) {
+    const type = entry.type || entry.tipo || entry.movement_type || 'entrada';
+    const amount = Number(entry.amount ?? entry.value ?? entry.valor ?? entry.opening_balance ?? entry.closing_balance ?? 0) || 0;
+
+    return {
+        id: entry.id,
+        type,
+        description: entry.description || entry.descricao || entry.notes || 'Movimentação de caixa',
+        amount,
+        payment_method: entry.payment_method || entry.paymentMethod || 'dinheiro',
+        created_at: entry.created_at || entry.createdAt || entry.date || new Date().toISOString()
+    };
+}
+
+async function loadCashPanel() {
+    try {
+        const entries = await window.electronAPI.getCashEntries().catch(() => []);
+        const isOpen = await window.electronAPI.isCashOpen().catch(() => false);
+
+        const normalized = (entries || []).map(normalizeCashEntry);
+
+        const totalEntries = normalized
+            .filter(item => item.type === 'entrada')
+            .reduce((sum, item) => sum + item.amount, 0);
+
+        const totalExits = normalized
+            .filter(item => item.type === 'saida')
+            .reduce((sum, item) => sum + item.amount, 0);
+
+        const balance = totalEntries - totalExits;
+
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+
+        setText('cash-status-label', isOpen ? 'Aberto' : 'Fechado');
+        setText('cash-total-entries', formatCurrencyBR(totalEntries));
+        setText('cash-total-exits', formatCurrencyBR(totalExits));
+        setText('cash-current-balance', formatCurrencyBR(balance));
+
+        const tbody = document.getElementById('cash-table-body');
+
+        if (!tbody) return;
+
+        if (!normalized.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="no-data">Nenhuma movimentação registrada</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = normalized.map(item => {
+            const typeLabel = item.type === 'saida' ? 'Saída' : 'Entrada';
+            const badgeClass = item.type === 'saida' ? 'badge-danger' : 'badge-success';
+
+            return `
+                <tr>
+                    <td>${new Date(item.created_at).toLocaleString('pt-BR')}</td>
+                    <td><span class="badge ${badgeClass}">${typeLabel}</span></td>
+                    <td>${escapeHtml(item.description)}</td>
+                    <td>${escapeHtml(item.payment_method)}</td>
+                    <td class="fw-bold">${formatCurrencyBR(item.amount)}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-view" title="Visualizar" onclick="viewCashEntry('${item.id || ''}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Erro ao carregar caixa:', error);
+        showNotification('Erro ao carregar caixa', 'error');
+    }
+}
+
+function showOpenCashModal() {
+    const body = `
+        <div class="form-row">
+            <div class="form-group">
+                <label>Saldo inicial (R$)</label>
+                <input type="number" id="modal-opening-balance" step="0.01" min="0" value="0.00">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Observações</label>
+            <textarea id="modal-open-cash-notes" rows="3" placeholder="Ex: Abertura do caixa do dia"></textarea>
+        </div>
+    `;
+
+    showGenericModal('Abrir Caixa', body, [
+        {
+            label: '<i class="fas fa-lock-open"></i> Abrir Caixa',
+            className: 'btn-primary',
+            onClick: async () => {
+                try {
+                    const openingBalance = Number(document.getElementById('modal-opening-balance')?.value || 0);
+                    const notes = document.getElementById('modal-open-cash-notes')?.value || '';
+
+                    const result = await window.electronAPI.openCash({ openingBalance, notes });
+
+                    if (!result?.success) {
+                        throw new Error(result?.error || 'Erro ao abrir caixa');
+                    }
+
+                    closeModal();
+                    showNotification('Caixa aberto com sucesso!', 'success');
+                    await loadCashPanel();
+
+                } catch (error) {
+                    console.error(error);
+                    showNotification(error.message || 'Erro ao abrir caixa', 'error');
+                }
+            }
+        },
+        {
+            label: 'Cancelar',
+            className: 'btn-secondary',
+            onClick: () => closeModal()
+        }
+    ]);
+}
+
+function showCashEntryModal(type = 'entrada') {
+    const isExit = type === 'saida';
+    const title = isExit ? 'Registrar Saída de Caixa' : 'Registrar Entrada de Caixa';
+
+    const body = `
+        <div class="form-row">
+            <div class="form-group">
+                <label>Valor (R$)</label>
+                <input type="number" id="modal-cash-amount" step="0.01" min="0" value="0.00">
+            </div>
+            <div class="form-group">
+                <label>Forma de pagamento</label>
+                <select id="modal-cash-payment-method">
+                    <option value="dinheiro">Dinheiro</option>
+                    <option value="pix">PIX</option>
+                    <option value="debito">Débito</option>
+                    <option value="credito">Crédito</option>
+                    <option value="boleto">Boleto</option>
+                    <option value="transferencia">Transferência</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Descrição</label>
+            <textarea id="modal-cash-description" rows="3" placeholder="${isExit ? 'Ex: Compra de material' : 'Ex: Recebimento de serviço'}"></textarea>
+        </div>
+    `;
+
+    showGenericModal(title, body, [
+        {
+            label: isExit ? '<i class="fas fa-minus-circle"></i> Registrar Saída' : '<i class="fas fa-plus-circle"></i> Registrar Entrada',
+            className: isExit ? 'btn-warning' : 'btn-success',
+            onClick: async () => {
+                try {
+                    const amount = Number(document.getElementById('modal-cash-amount')?.value || 0);
+                    const payment_method = document.getElementById('modal-cash-payment-method')?.value || 'dinheiro';
+                    const description = document.getElementById('modal-cash-description')?.value || (isExit ? 'Saída de caixa' : 'Entrada de caixa');
+
+                    if (amount <= 0) {
+                        showNotification('Informe um valor maior que zero', 'warning');
+                        return;
+                    }
+
+                    const result = await window.electronAPI.saveCashEntry({
+                        type,
+                        amount,
+                        payment_method,
+                        description
+                    });
+
+                    if (!result?.success) {
+                        throw new Error(result?.error || 'Erro ao registrar movimentação');
+                    }
+
+                    closeModal();
+                    showNotification('Movimentação registrada!', 'success');
+                    await loadCashPanel();
+
+                } catch (error) {
+                    console.error(error);
+                    showNotification(error.message || 'Erro ao registrar movimentação', 'error');
+                }
+            }
+        },
+        {
+            label: 'Cancelar',
+            className: 'btn-secondary',
+            onClick: () => closeModal()
+        }
+    ]);
+}
+
+function showCloseCashModal() {
+    const body = `
+        <div class="form-row">
+            <div class="form-group">
+                <label>Saldo de fechamento (R$)</label>
+                <input type="number" id="modal-closing-balance" step="0.01" min="0" value="0.00">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Observações</label>
+            <textarea id="modal-close-cash-notes" rows="3" placeholder="Ex: Fechamento do caixa do dia"></textarea>
+        </div>
+    `;
+
+    showGenericModal('Fechar Caixa', body, [
+        {
+            label: '<i class="fas fa-lock"></i> Fechar Caixa',
+            className: 'btn-danger',
+            onClick: async () => {
+                try {
+                    const closingBalance = Number(document.getElementById('modal-closing-balance')?.value || 0);
+                    const notes = document.getElementById('modal-close-cash-notes')?.value || '';
+
+                    const result = await window.electronAPI.closeCash({ closingBalance, notes });
+
+                    if (!result?.success) {
+                        throw new Error(result?.error || 'Erro ao fechar caixa');
+                    }
+
+                    closeModal();
+                    showNotification('Caixa fechado com sucesso!', 'success');
+                    await loadCashPanel();
+
+                } catch (error) {
+                    console.error(error);
+                    showNotification(error.message || 'Erro ao fechar caixa', 'error');
+                }
+            }
+        },
+        {
+            label: 'Cancelar',
+            className: 'btn-secondary',
+            onClick: () => closeModal()
+        }
+    ]);
+}
+
+function viewCashEntry(id) {
+    showNotification('Movimentação registrada no histórico do caixa.', 'info');
+}
+
+async function loadChecklistPanel() {
+    try {
+        const list = await window.electronAPI.getChecklists().catch(() => []);
+        const tbody = document.getElementById('checklists-table-body');
+
+        const total = list.length;
+        const entryTotal = list.filter(item => (item.type || '').includes('entrada')).length;
+        const exitTotal = list.filter(item => ['saida', 'entrega'].includes(item.type)).length;
+
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+
+        setText('checklists-total', total);
+        setText('checklists-entry-total', entryTotal);
+        setText('checklists-exit-total', exitTotal);
+
+        if (!tbody) return;
+
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="no-data">Nenhum checklist cadastrado</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = list.map(item => {
+            const typeLabel =
+                item.type === 'entrada' ? 'Entrada' :
+                item.type === 'saida' ? 'Saída' :
+                item.type === 'entrega' ? 'Entrega' :
+                item.type || '-';
+
+            return `
+                <tr>
+                    <td>${escapeHtml(item.service_id || item.serviceId || '-')}</td>
+                    <td><span class="badge badge-info">${escapeHtml(typeLabel)}</span></td>
+                    <td>${escapeHtml(item.observations || item.notes || '-')}</td>
+                    <td>${item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-view" title="Visualizar" onclick="viewChecklist('${item.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-delete" title="Excluir" onclick="deleteChecklist('${item.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Erro ao carregar checklists:', error);
+        showNotification('Erro ao carregar checklists', 'error');
+    }
+}
+
+async function showChecklistForm() {
+    try {
+        const services = await window.electronAPI.getServices().catch(() => []);
+
+        const serviceOptions = services.map(service => {
+            const label = `${service.service_number || service.id?.substring(0, 8) || ''} - ${service.device_model || service.equipment || 'Equipamento'}`;
+            return `<option value="${service.id}">${escapeHtml(label)}</option>`;
+        }).join('');
+
+        const body = `
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Serviço / OS</label>
+                    <select id="modal-checklist-service" required>
+                        <option value="">Selecione um serviço...</option>
+                        ${serviceOptions}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Checklist</label>
+                    <select id="modal-checklist-type">
+                        <option value="entrada">Entrada do aparelho</option>
+                        <option value="saida">Saída do aparelho</option>
+                        <option value="entrega">Entrega ao cliente</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4><i class="fas fa-mobile-alt"></i> Condição do aparelho</h4>
+                <label><input type="checkbox" class="modal-check-item" value="Liga normalmente"> Liga normalmente</label><br>
+                <label><input type="checkbox" class="modal-check-item" value="Tela sem trincos aparentes"> Tela sem trincos aparentes</label><br>
+                <label><input type="checkbox" class="modal-check-item" value="Touch funcionando"> Touch funcionando</label><br>
+                <label><input type="checkbox" class="modal-check-item" value="Câmeras funcionando"> Câmeras funcionando</label><br>
+                <label><input type="checkbox" class="modal-check-item" value="Alto-falante funcionando"> Alto-falante funcionando</label><br>
+                <label><input type="checkbox" class="modal-check-item" value="Microfone funcionando"> Microfone funcionando</label><br>
+                <label><input type="checkbox" class="modal-check-item" value="Conector de carga funcionando"> Conector de carga funcionando</label><br>
+                <label><input type="checkbox" class="modal-check-item" value="Biometria/Face ID funcionando"> Biometria/Face ID funcionando</label>
+            </div>
+
+            <div class="form-group">
+                <label>Observações</label>
+                <textarea id="modal-checklist-observations" rows="4" placeholder="Descreva marcas, riscos, trincos, acessórios recebidos ou qualquer observação importante..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Assinatura / responsável</label>
+                <input type="text" id="modal-checklist-signature" placeholder="Nome do responsável pelo checklist">
+            </div>
+        `;
+
+        showGenericModal('Novo Checklist', body, [
+            {
+                label: '<i class="fas fa-save"></i> Salvar Checklist',
+                className: 'btn-primary',
+                onClick: async () => {
+                    try {
+                        const serviceId = document.getElementById('modal-checklist-service')?.value || '';
+                        const type = document.getElementById('modal-checklist-type')?.value || 'entrada';
+                        const observations = document.getElementById('modal-checklist-observations')?.value || '';
+                        const technician_signature = document.getElementById('modal-checklist-signature')?.value || '';
+
+                        if (!serviceId) {
+                            showNotification('Selecione um serviço para o checklist', 'warning');
+                            return;
+                        }
+
+                        const checkedItems = Array.from(document.querySelectorAll('.modal-check-item')).map(input => ({
+                            label: input.value,
+                            checked: input.checked
+                        }));
+
+                        const result = await window.electronAPI.saveChecklist({
+                            service_id: serviceId,
+                            type,
+                            items: checkedItems,
+                            observations,
+                            technician_signature,
+                            photos: []
+                        });
+
+                        if (!result?.success) {
+                            throw new Error(result?.error || 'Erro ao salvar checklist');
+                        }
+
+                        closeModal();
+                        showNotification('Checklist salvo com sucesso!', 'success');
+                        await loadChecklistPanel();
+
+                    } catch (error) {
+                        console.error(error);
+                        showNotification(error.message || 'Erro ao salvar checklist', 'error');
+                    }
+                }
+            },
+            {
+                label: 'Cancelar',
+                className: 'btn-secondary',
+                onClick: () => closeModal()
+            }
+        ]);
+
+    } catch (error) {
+        console.error(error);
+        showNotification('Erro ao abrir formulário de checklist', 'error');
+    }
+}
+
+async function viewChecklist(id) {
+    try {
+        const item = await window.electronAPI.getChecklistById(id);
+
+        if (!item) {
+            showNotification('Checklist não encontrado', 'error');
+            return;
+        }
+
+        const items = Array.isArray(item.items) ? item.items : [];
+
+        const itemsHtml = items.length ? `
+            <ul style="margin-left:18px;">
+                ${items.map(i => `<li>${i.checked ? '✅' : '⬜'} ${escapeHtml(i.label || String(i))}</li>`).join('')}
+            </ul>
+        ` : '<p>Nenhum item detalhado.</p>';
+
+        const body = `
+            <p><strong>Serviço:</strong> ${escapeHtml(item.service_id || '-')}</p>
+            <p><strong>Tipo:</strong> ${escapeHtml(item.type || '-')}</p>
+            <p><strong>Data:</strong> ${item.created_at ? new Date(item.created_at).toLocaleString('pt-BR') : '-'}</p>
+            <p><strong>Observações:</strong> ${escapeHtml(item.observations || '-')}</p>
+            <hr style="margin:15px 0;">
+            ${itemsHtml}
+        `;
+
+        showGenericModal('Detalhes do Checklist', body, [
+            {
+                label: 'Fechar',
+                className: 'btn-secondary',
+                onClick: () => closeModal()
+            }
+        ]);
+
+    } catch (error) {
+        console.error(error);
+        showNotification('Erro ao visualizar checklist', 'error');
+    }
+}
+
+async function deleteChecklist(id) {
+    confirmAction('Deseja excluir este checklist?', async () => {
+        try {
+            const result = await window.electronAPI.deleteChecklist(id);
+
+            if (!result?.success) {
+                throw new Error(result?.error || 'Erro ao excluir checklist');
+            }
+
+            showNotification('Checklist excluído!', 'success');
+            await loadChecklistPanel();
+
+        } catch (error) {
+            console.error(error);
+            showNotification(error.message || 'Erro ao excluir checklist', 'error');
+        }
+    });
+}
+
+window.loadCashPanel = loadCashPanel;
+window.showOpenCashModal = showOpenCashModal;
+window.showCashEntryModal = showCashEntryModal;
+window.showCloseCashModal = showCloseCashModal;
+window.loadChecklistPanel = loadChecklistPanel;
+window.showChecklistForm = showChecklistForm;
+window.viewChecklist = viewChecklist;
+window.deleteChecklist = deleteChecklist;
+
 // ============ EXPORTS GLOBAIS ==========
 window.showTab = showTab;
 window.showClientForm = showClientForm;
