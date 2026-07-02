@@ -3280,7 +3280,9 @@ async function loadSales(search = '') {
         const sales = await window.electronAPI.getSales();
         const clients = await window.electronAPI.getClients();
 
-        const tbody = document.getElementById('sales-table-body');
+        const tbody =
+        document.getElementById('sales-table-body') ||
+        document.getElementById('sales-history-body');
 
         if (!tbody) return;
 
@@ -3303,7 +3305,7 @@ async function loadSales(search = '') {
         }
 
         if (!filtered.length) {
-            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Nenhuma venda registrada</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="no-data">Nenhuma venda registrada</td></tr>';
 
             const totalSales = document.getElementById('total-sales');
             const salesRevenue = document.getElementById('sales-revenue');
@@ -3417,17 +3419,17 @@ async function finalizeSale(e) {
 
     try {
         const clientSelect = document.getElementById('sale-client');
-        const clientId = clientSelect?.value || null;
+const clientId = clientSelect?.value || null;
 
-        const totals = calculateFinalTotal();
-        const laborValue = Number(totals.labor || 0);
+const totals = calculateFinalTotal();
+const laborValue = Number(totals.labor || 0);
 
-        if ((!currentSale.items || currentSale.items.length === 0) && laborValue <= 0) {
-            showNotification('Adicione uma peça ou informe um valor de mão de obra para finalizar a venda.', 'error');
-            return false;
-        }
+if ((!currentSale.items || currentSale.items.length === 0) && laborValue <= 0) {
+    showNotification('Adicione uma peça ou informe um valor de mão de obra para finalizar a venda.', 'error');
+    return false;
+}
 
-        let clientName = '';
+let clientName = '';
 
         if (clientId) {
             const clients = await window.electronAPI.getClients();
@@ -5489,29 +5491,75 @@ async function printService(id) {
 
 async function loadChecklistPanel() {
     try {
-        const list = await window.electronAPI.getChecklists();
+        const [list, services, clients] = await Promise.all([
+            window.electronAPI.getChecklists().catch(() => []),
+            window.electronAPI.getServices().catch(() => []),
+            window.electronAPI.getClients().catch(() => [])
+        ]);
+
         const tbody = document.getElementById('checklists-table-body');
+
+        const total = list.length;
+        const entryTotal = list.filter(item => (item.type || '').includes('entrada')).length;
+        const exitTotal = list.filter(item => ['saida', 'entrega'].includes(item.type)).length;
+
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+
+        setText('checklists-total', total);
+        setText('checklists-entry-total', entryTotal);
+        setText('checklists-exit-total', exitTotal);
 
         if (!tbody) return;
 
-        if (!list || list.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="no-data">Nenhum checklist cadastrado</td></tr>`;
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="no-data">Nenhum checklist cadastrado</td></tr>';
             return;
         }
 
-        tbody.innerHTML = list.map(item => `
-            <tr>
-                <td>${item.service_id || '-'}</td>
-                <td>${item.type || '-'}</td>
-                <td>${item.observations || '-'}</td>
-                <td>${item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-'}</td>
-                <td>
-                    <div class="actions">
-                        <button class="btn-view" title="Visualizar"><i class="fas fa-eye"></i></button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = list.map(item => {
+            const serviceId = item.service_id || item.serviceId || '';
+            const service = services.find(s => s.id === serviceId);
+
+            const clientId = service?.client_id || service?.clientId || '';
+            const client = clients.find(c => c.id === clientId);
+
+            const clientName = client?.name || 'Cliente não identificado';
+            const equipment = service?.device_model || service?.equipment || 'Equipamento não informado';
+
+            const serviceLabel = `${clientName} - ${equipment}`;
+
+            const typeLabel =
+                item.type === 'entrada' ? 'Entrada' :
+                item.type === 'saida' ? 'Saída' :
+                item.type === 'entrega' ? 'Entrega' :
+                item.type || '-';
+
+            return `
+                <tr>
+                    <td>
+                        <strong>${escapeHtml(clientName)}</strong><br>
+                        <small>${escapeHtml(equipment)}</small>
+                    </td>
+                    <td><span class="badge badge-info">${escapeHtml(typeLabel)}</span></td>
+                    <td>${escapeHtml(item.observations || item.notes || '-')}</td>
+                    <td>${item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-view" title="Visualizar" onclick="viewChecklist('${item.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-delete" title="Excluir" onclick="deleteChecklist('${item.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
     } catch (error) {
         console.error('Erro ao carregar checklists:', error);
         showNotification('Erro ao carregar checklists', 'error');
@@ -6115,6 +6163,20 @@ async function viewChecklist(id) {
             return;
         }
 
+        const [services, clients] = await Promise.all([
+            window.electronAPI.getServices().catch(() => []),
+            window.electronAPI.getClients().catch(() => [])
+        ]);
+
+        const serviceId = item.service_id || item.serviceId || '';
+        const service = services.find(s => s.id === serviceId);
+
+        const clientId = service?.client_id || service?.clientId || '';
+        const client = clients.find(c => c.id === clientId);
+
+        const clientName = client?.name || 'Cliente não identificado';
+        const equipment = service?.device_model || service?.equipment || 'Equipamento não informado';
+
         const items = Array.isArray(item.items) ? item.items : [];
 
         const itemsHtml = items.length ? `
@@ -6123,13 +6185,48 @@ async function viewChecklist(id) {
             </ul>
         ` : '<p>Nenhum item detalhado.</p>';
 
+        const photos = Array.isArray(item.photos) ? item.photos : [];
+
+        const photosHtml = photos.length ? `
+            <hr style="margin:15px 0;">
+            <h4>Fotos do aparelho</h4>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:12px;">
+                ${photos.map(photo => {
+                    const url = photo.photo_url || photo.url || photo.publicUrl || '';
+                    if (!url) return '';
+
+                    return `
+                        <a href="${url}" target="_blank" style="display:block;">
+                            <img src="${url}" alt="Foto do aparelho" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid #ddd;">
+                        </a>
+                    `;
+                }).join('')}
+            </div>
+        ` : `
+            <hr style="margin:15px 0;">
+            <p><strong>Fotos:</strong> Nenhuma foto anexada.</p>
+        `;
+
+        const typeLabel =
+            item.type === 'entrada' ? 'Entrada' :
+            item.type === 'saida' ? 'Saída' :
+            item.type === 'entrega' ? 'Entrega' :
+            item.type || '-';
+
         const body = `
-            <p><strong>Serviço:</strong> ${escapeHtml(item.service_id || '-')}</p>
-            <p><strong>Tipo:</strong> ${escapeHtml(item.type || '-')}</p>
+            <p><strong>Cliente:</strong> ${escapeHtml(clientName)}</p>
+            <p><strong>Equipamento:</strong> ${escapeHtml(equipment)}</p>
+            <p><strong>Serviço/OS:</strong> ${escapeHtml(service?.service_number || serviceId || '-')}</p>
+            <p><strong>Tipo:</strong> ${escapeHtml(typeLabel)}</p>
             <p><strong>Data:</strong> ${item.created_at ? new Date(item.created_at).toLocaleString('pt-BR') : '-'}</p>
             <p><strong>Observações:</strong> ${escapeHtml(item.observations || '-')}</p>
+
             <hr style="margin:15px 0;">
+
+            <h4>Itens verificados</h4>
             ${itemsHtml}
+
+            ${photosHtml}
         `;
 
         showGenericModal('Detalhes do Checklist', body, [
