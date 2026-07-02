@@ -1355,3 +1355,186 @@ tbody tr:last-child td {
         background: white;
     }
 }
+/* ============ CORREÇÃO FINAL DE LAYOUT WEB ============ */
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+body {
+    min-height: 100vh;
+    background: #e8eef7;
+}
+
+.container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Corrige área grande sobrando embaixo das abas */
+.content {
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 20px;
+    overflow: visible;
+    background: transparent;
+}
+
+/* Mantém cada aba com espaçamento correto */
+.tab-content {
+    width: 100%;
+}
+
+/* Padroniza os blocos principais */
+.section-header,
+.dashboard-header,
+.form-container,
+.table-container,
+.quick-actions,
+.recent-activity,
+.warning-section,
+.chart-card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Corrige cabeçalho simples do Dashboard */
+.dashboard-header {
+    background: var(--white);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+}
+
+.dashboard-header h2 {
+    margin: 0;
+}
+
+/* Corrige grids para não ficarem quebrados */
+.stats-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+}
+
+/* Deixa os cards com altura uniforme */
+.stat-card {
+    min-height: 96px;
+}
+
+/* Corrige área das tabelas */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* Impede tabela de estourar a tela */
+.table-container table {
+    width: 100%;
+    min-width: 760px;
+}
+
+/* Alinha melhor ações dentro das tabelas */
+.actions,
+td .actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+/* Corrige botões do topo das seções */
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Corrige campo de busca para não quebrar layout */
+.search-box {
+    min-width: 260px;
+}
+
+.search-box input {
+    width: 280px;
+    max-width: 100%;
+}
+
+.search-box input:focus {
+    width: 300px;
+    max-width: 100%;
+}
+
+/* Rodapé estável */
+.footer {
+    width: 100%;
+    margin-top: auto;
+    position: static;
+    flex-shrink: 0;
+    background: var(--white);
+    border-top: 1px solid var(--gray-200);
+}
+
+/* Corrige alinhamento interno do rodapé */
+.footer-info,
+.system-info {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+/* Ajuste para telas menores */
+@media (max-width: 768px) {
+    .content {
+        padding: 12px;
+    }
+
+    .section-header,
+    .dashboard-header {
+        padding: 16px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .search-box {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    .search-box input,
+    .search-box input:focus {
+        width: 100%;
+    }
+
+    .table-container table {
+        min-width: 700px;
+    }
+
+    .footer {
+        text-align: center;
+        justify-content: center;
+    }
+
+    .footer-info,
+    .system-info {
+        justify-content: center;
+    }
+}
