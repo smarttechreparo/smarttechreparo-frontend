@@ -1,3 +1,8 @@
+/* ============================================================
+   Smart Tech Reparo - CSS Web Atualizado
+   Layout limpo para uso no navegador, Vercel e Railway.
+   ============================================================ */
+
 /* ============ RESET E BASE ============ */
 * {
     margin: 0;
@@ -36,14 +41,17 @@
 
 html {
     font-size: 16px;
+    width: 100%;
+    min-height: 100%;
 }
 
 body {
     font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: #eef3f9;
     color: var(--gray-800);
     min-height: 100vh;
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
 .container {
@@ -51,9 +59,8 @@ body {
     max-width: 100%;
     margin: 0 auto;
     padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    min-height: auto;
+    display: block;
 }
 
 /* ============ HEADER ============ */
@@ -189,10 +196,11 @@ body {
 
 /* ============ CONTEÚDO PRINCIPAL ============ */
 .content {
-    flex: 1;
+    width: 100%;
     padding: 20px;
     background: transparent;
-    overflow-y: auto;
+    overflow: visible;
+    min-height: auto;
 }
 
 .tab-content {
@@ -244,13 +252,15 @@ body {
 
 /* ============ STATS GRID ============ */
 .stats-grid {
+    width: 100%;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 16px;
     margin: 20px 0;
 }
 
 .stat-card {
+    min-height: 96px;
     background: var(--white);
     border-radius: var(--radius-lg);
     padding: 20px;
@@ -300,6 +310,19 @@ body {
     font-weight: 700;
     color: var(--gray-900);
     word-break: break-all;
+}
+
+
+.section-header,
+.dashboard-header,
+.form-container,
+.table-container,
+.quick-actions,
+.recent-activity,
+.warning-section,
+.chart-card {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ============ FORMULÁRIOS ============ */
@@ -489,9 +512,11 @@ button:disabled {
 
 /* ============ TABELAS ============ */
 .table-container {
+    width: 100%;
     background: var(--white);
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     box-shadow: var(--shadow-sm);
     margin: 20px 0;
     border: 1px solid var(--gray-200);
@@ -515,7 +540,7 @@ button:disabled {
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
+    min-width: 760px;
 }
 
 thead th {
@@ -569,9 +594,10 @@ tbody tr:last-child td {
 /* ============ ACTIONS (BOTÕES DE AÇÃO NA TABELA) ============ */
 .actions {
     display: flex;
-    gap: 5px;
+    gap: 6px;
     justify-content: center;
-    flex-wrap: wrap;
+    align-items: center;
+    flex-wrap: nowrap;
 }
 
 .btn-view, .btn-edit, .btn-delete, .btn-print, .btn-whatsapp {
@@ -730,6 +756,7 @@ tbody tr:last-child td {
     border-radius: 25px;
     font-size: 14px;
     width: 280px;
+    max-width: 100%;
     transition: var(--transition);
     background: var(--white);
 }
@@ -737,7 +764,8 @@ tbody tr:last-child td {
 .search-box input:focus {
     outline: none;
     border-color: var(--primary);
-    width: 320px;
+    width: 300px;
+    max-width: 100%;
     box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
 }
 
@@ -995,6 +1023,7 @@ tbody tr:last-child td {
 
 /* ============ FOOTER ============ */
 .footer {
+    width: 100%;
     background: var(--white);
     padding: 15px 30px;
     display: flex;
@@ -1003,20 +1032,24 @@ tbody tr:last-child td {
     font-size: 12px;
     color: var(--gray-500);
     box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+    border-top: 1px solid var(--gray-200);
     flex-wrap: wrap;
     gap: 10px;
-    margin-top: auto;
+    margin-top: 20px;
+    position: static;
 }
 
 .footer-info {
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 18px;
     flex-wrap: wrap;
 }
 
 .system-info {
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 18px;
     flex-wrap: wrap;
 }
 
@@ -1353,188 +1386,5 @@ tbody tr:last-child td {
     
     body {
         background: white;
-    }
-}
-/* ============ CORREÇÃO FINAL DE LAYOUT WEB ============ */
-
-html,
-body {
-    width: 100%;
-    min-height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
-
-body {
-    min-height: 100vh;
-    background: #e8eef7;
-}
-
-.container {
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Corrige área grande sobrando embaixo das abas */
-.content {
-    flex: 0 0 auto;
-    width: 100%;
-    padding: 20px;
-    overflow: visible;
-    background: transparent;
-}
-
-/* Mantém cada aba com espaçamento correto */
-.tab-content {
-    width: 100%;
-}
-
-/* Padroniza os blocos principais */
-.section-header,
-.dashboard-header,
-.form-container,
-.table-container,
-.quick-actions,
-.recent-activity,
-.warning-section,
-.chart-card {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* Corrige cabeçalho simples do Dashboard */
-.dashboard-header {
-    background: var(--white);
-    padding: 20px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 20px;
-}
-
-.dashboard-header h2 {
-    margin: 0;
-}
-
-/* Corrige grids para não ficarem quebrados */
-.stats-grid {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px;
-    margin: 20px 0;
-}
-
-/* Deixa os cards com altura uniforme */
-.stat-card {
-    min-height: 96px;
-}
-
-/* Corrige área das tabelas */
-.table-container {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-}
-
-/* Impede tabela de estourar a tela */
-.table-container table {
-    width: 100%;
-    min-width: 760px;
-}
-
-/* Alinha melhor ações dentro das tabelas */
-.actions,
-td .actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: nowrap;
-}
-
-/* Corrige botões do topo das seções */
-.header-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-/* Corrige campo de busca para não quebrar layout */
-.search-box {
-    min-width: 260px;
-}
-
-.search-box input {
-    width: 280px;
-    max-width: 100%;
-}
-
-.search-box input:focus {
-    width: 300px;
-    max-width: 100%;
-}
-
-/* Rodapé estável */
-.footer {
-    width: 100%;
-    margin-top: auto;
-    position: static;
-    flex-shrink: 0;
-    background: var(--white);
-    border-top: 1px solid var(--gray-200);
-}
-
-/* Corrige alinhamento interno do rodapé */
-.footer-info,
-.system-info {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    flex-wrap: wrap;
-}
-
-/* Ajuste para telas menores */
-@media (max-width: 768px) {
-    .content {
-        padding: 12px;
-    }
-
-    .section-header,
-    .dashboard-header {
-        padding: 16px;
-    }
-
-    .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .search-box {
-        width: 100%;
-        min-width: 100%;
-    }
-
-    .search-box input,
-    .search-box input:focus {
-        width: 100%;
-    }
-
-    .table-container table {
-        min-width: 700px;
-    }
-
-    .footer {
-        text-align: center;
-        justify-content: center;
-    }
-
-    .footer-info,
-    .system-info {
-        justify-content: center;
     }
 }
