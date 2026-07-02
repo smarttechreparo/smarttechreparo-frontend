@@ -392,137 +392,29 @@ isCashOpen: async () => {
             method: 'DELETE'
         });
     },
-
-   // Compras
+    
+// Compras
 getPurchases: async () => {
     const result = await requestJson(`${API_URL}/purchases`);
     return result.data || [];
 },
 
-async function savePurchaseFromModal() {
-    const invoiceNumber = document.getElementById('purchase-invoice')?.value?.trim();
-    const supplierId = document.getElementById('purchase-supplier')?.value;
-
-    if (!invoiceNumber) {
-        showNotification('Informe o número da nota fiscal', 'error');
-        return;
-    }
-
-    if (!supplierId) {
-        showNotification('Selecione um fornecedor', 'error');
-        return;
-    }
-
-    if (!currentPurchaseItems || currentPurchaseItems.length === 0) {
-        showNotification('Adicione pelo menos um item', 'error');
-        return;
-    }
-
-    showNotification('Salvando compra...', 'info');
-
-    try {
-        const suppliers = await window.electronAPI.getSuppliers();
-        const supplierName = suppliers.find(s => s.id === supplierId)?.name || '';
-
-        const savedItems = [];
-
-        for (const item of currentPurchaseItems) {
-            let partId = item.partId || item.part_id || null;
-
-            if (!partId) {
-                const partResult = await window.electronAPI.savePart({
-                    name: item.partName,
-                    code: item.partCode || item.code || '',
-                    supplier_id: supplierId,
-                    quantity: Number(item.quantity) || 0,
-                    min_stock: 5,
-                    cost_price: Number(item.unitPrice || item.price || 0) || 0,
-                    sale_price: Number(item.unitPrice || item.price || 0) || 0
-                });
-
-                if (!partResult?.success) {
-                    throw new Error(partResult?.error || `Erro ao cadastrar peça ${item.partName}`);
-                }
-
-                partId = partResult.data.id;
-            }
-
-            savedItems.push({
-                part_id: partId,
-                partId,
-                partName: item.partName,
-                partCode: item.partCode || item.code || '',
-                quantity: Number(item.quantity) || 1,
-                unitPrice: Number(item.unitPrice || item.price || 0),
-                total: Number(item.total || 0),
-                ncm: item.ncm || '',
-                cfop: item.cfop || '5405',
-                isBonus: !!item.isBonus
-            });
-        }
-
-        const productsTotal = savedItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
-        const freight = parseFloat(document.getElementById('purchase-freight')?.value) || 0;
-        const insurance = parseFloat(document.getElementById('purchase-insurance')?.value) || 0;
-        const discount = parseFloat(document.getElementById('purchase-discount')?.value) || 0;
-        const otherExpenses = parseFloat(document.getElementById('purchase-other-expenses')?.value) || 0;
-        const total = productsTotal + freight + insurance + otherExpenses - discount;
-
-        const purchaseData = {
-            invoiceNumber,
-            series: document.getElementById('purchase-series')?.value || '1',
-            model: document.getElementById('purchase-model')?.value || '55',
-            issueDate: document.getElementById('purchase-issue-date')?.value || new Date().toISOString().split('T')[0],
-            arrivalDate: document.getElementById('purchase-arrival-date')?.value || new Date().toISOString().split('T')[0],
-            entryDate: document.getElementById('purchase-entry-date')?.value || new Date().toISOString().split('T')[0],
-            supplier_id: supplierId,
-            supplierId,
-            supplierName,
-            cfop: document.getElementById('purchase-cfop')?.value || '5405',
-            freight,
-            insurance,
-            discount,
-            otherExpenses,
-            productsTotal,
-            total,
-            total_amount: total,
-            paymentMethod: document.getElementById('purchase-payment-method')?.value || 'dinheiro',
-            payment_method: document.getElementById('purchase-payment-method')?.value || 'dinheiro',
-            installments: parseInt(document.getElementById('purchase-installments')?.value) || 1,
-            dueDate: document.getElementById('purchase-due-date')?.value || new Date().toISOString().split('T')[0],
-            notes: document.getElementById('purchase-notes')?.value || '',
-            items: savedItems,
-            status: 'pendente',
-            date: new Date().toISOString()
-        };
-
-        const result = await window.electronAPI.savePurchase(purchaseData);
-
-        if (!result?.success) {
-            throw new Error(result?.error || 'Erro ao salvar compra');
-        }
-
-        showNotification(`Compra NF-e ${invoiceNumber} registrada!`, 'success');
-
-        closePurchaseModal();
-
-        currentPurchaseItems = [];
-
-        dataCache.delete('parts');
-        dataCache.delete('purchases');
-
-        await Promise.all([
-            loadPurchases(),
-            loadStock(),
-            loadParts(),
-            loadDashboard()
-        ]);
-
-    } catch (error) {
-        console.error('Erro ao salvar compra:', error);
-        showNotification(error.message || 'Erro ao salvar compra', 'error');
-    }
+savePurchase: async (purchase) => {
+    return requestJson(`${API_URL}/purchases`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(purchase)
+    });
 },
+
+deletePurchase: async (id) => {
+    return requestJson(`${API_URL}/purchases/${id}`, {
+        method: 'DELETE'
+    });
+},
+
 
 // Despesas
 getExpenses: async () => {
@@ -1148,6 +1040,132 @@ async function executarBuscaCNPJ() {
                 window.open(`https://solucoes.receita.fazenda.gov.br/Servicos/cnpjreva/Cnpjreva_Solicitacao.asp?cnpj=${cnpj}`, '_blank');
             }
         }, 500);
+    }
+}
+async function savePurchaseFromModal() {
+    const invoiceNumber = document.getElementById('purchase-invoice')?.value?.trim();
+    const supplierId = document.getElementById('purchase-supplier')?.value;
+
+    if (!invoiceNumber) {
+        showNotification('Informe o número da nota fiscal', 'error');
+        return;
+    }
+
+    if (!supplierId) {
+        showNotification('Selecione um fornecedor', 'error');
+        return;
+    }
+
+    if (!currentPurchaseItems || currentPurchaseItems.length === 0) {
+        showNotification('Adicione pelo menos um item', 'error');
+        return;
+    }
+
+    showNotification('Salvando compra...', 'info');
+
+    try {
+        const suppliers = await window.electronAPI.getSuppliers();
+        const supplierName = suppliers.find(s => s.id === supplierId)?.name || '';
+
+        const savedItems = [];
+
+        for (const item of currentPurchaseItems) {
+            let partId = item.partId || item.part_id || null;
+
+            if (!partId) {
+                const partResult = await window.electronAPI.savePart({
+                    name: item.partName || item.name || '',
+                    code: item.partCode || item.code || '',
+                    supplier_id: supplierId,
+                    quantity: Number(item.quantity) || 0,
+                    min_stock: 5,
+                    cost_price: Number(item.unitPrice || item.price || 0) || 0,
+                    sale_price: Number(item.unitPrice || item.price || 0) || 0
+                });
+
+                if (!partResult?.success) {
+                    throw new Error(partResult?.error || `Erro ao cadastrar peça ${item.partName || item.name}`);
+                }
+
+                partId = partResult.data.id;
+            }
+
+            savedItems.push({
+                part_id: partId,
+                partId,
+                partName: item.partName || item.name || '',
+                partCode: item.partCode || item.code || '',
+                quantity: Number(item.quantity) || 1,
+                unitPrice: Number(item.unitPrice || item.price || 0),
+                total: Number(item.total || 0),
+                ncm: item.ncm || '',
+                cfop: item.cfop || '5405',
+                isBonus: !!item.isBonus
+            });
+        }
+
+        const productsTotal = savedItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+
+        const freight = parseFloat(document.getElementById('purchase-freight')?.value) || 0;
+        const insurance = parseFloat(document.getElementById('purchase-insurance')?.value) || 0;
+        const discount = parseFloat(document.getElementById('purchase-discount')?.value) || 0;
+        const otherExpenses = parseFloat(document.getElementById('purchase-other-expenses')?.value) || 0;
+
+        const total = productsTotal + freight + insurance + otherExpenses - discount;
+
+        const purchaseData = {
+            invoiceNumber,
+            series: document.getElementById('purchase-series')?.value || '1',
+            model: document.getElementById('purchase-model')?.value || '55',
+            issueDate: document.getElementById('purchase-issue-date')?.value || new Date().toISOString().split('T')[0],
+            arrivalDate: document.getElementById('purchase-arrival-date')?.value || new Date().toISOString().split('T')[0],
+            entryDate: document.getElementById('purchase-entry-date')?.value || new Date().toISOString().split('T')[0],
+            supplier_id: supplierId,
+            supplierId,
+            supplierName,
+            cfop: document.getElementById('purchase-cfop')?.value || '5405',
+            freight,
+            insurance,
+            discount,
+            otherExpenses,
+            productsTotal,
+            total,
+            total_amount: total,
+            paymentMethod: document.getElementById('purchase-payment-method')?.value || 'dinheiro',
+            payment_method: document.getElementById('purchase-payment-method')?.value || 'dinheiro',
+            installments: parseInt(document.getElementById('purchase-installments')?.value) || 1,
+            dueDate: document.getElementById('purchase-due-date')?.value || new Date().toISOString().split('T')[0],
+            notes: document.getElementById('purchase-notes')?.value || '',
+            items: savedItems,
+            status: 'pendente',
+            date: new Date().toISOString()
+        };
+
+        const result = await window.electronAPI.savePurchase(purchaseData);
+
+        if (!result?.success) {
+            throw new Error(result?.error || 'Erro ao salvar compra');
+        }
+
+        showNotification(`Compra NF-e ${invoiceNumber} registrada!`, 'success');
+
+        closePurchaseModal();
+
+        currentPurchaseItems = [];
+
+        dataCache.delete('parts');
+        dataCache.delete('purchases');
+
+        await Promise.all([
+            loadPurchases(),
+            loadStock(),
+            loadParts(),
+            loadDashboard()
+        ]);
+
+    } catch (error) {
+        console.error('Erro ao salvar compra:', error);
+        showNotification(error.message || 'Erro ao salvar compra', 'error');
     }
 }
 
