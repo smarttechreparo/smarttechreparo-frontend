@@ -1389,115 +1389,116 @@ tbody tr:last-child td {
     }
 }
 
-/* ============ CORREÇÃO RESPONSIVA FINAL DAS TABELAS ============ */
+/* ============ AJUSTE VISUAL APENAS DA TABELA DE PEÇAS ============ */
 
-/* A tabela não deve cortar conteúdo */
-.table-container {
-    width: 100%;
+#parts .table-container {
+    background: #ffffff;
+    border-radius: 12px;
     overflow-x: auto;
     overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
 }
 
-/* Remove o table-layout fixed que cortava os botões */
-.table-container table {
+/* Deixa a tabela de peças mais compacta e elegante */
+#parts-table {
     width: 100%;
-    min-width: 900px;
-    table-layout: auto !important;
-    border-collapse: collapse;
+    min-width: 980px;
+    table-layout: fixed;
 }
 
-/* Não cortar células */
-.table-container th,
-.table-container td {
-    overflow: visible !important;
-    text-overflow: unset !important;
-    white-space: nowrap;
+/* Células da tabela de peças */
+#parts-table th,
+#parts-table td {
+    padding: 14px 18px;
     vertical-align: middle;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: unset;
 }
 
-/* Nome pode quebrar linha se for muito grande */
-#clients-table td:first-child,
-#parts-table td:first-child,
-#suppliers-table td:first-child,
-#services-table td:nth-child(4),
-#purchases-table td:nth-child(3),
-#expenses-table td:nth-child(3) {
+/* Larguras equilibradas das colunas */
+#parts-table th:nth-child(1),
+#parts-table td:nth-child(1) {
+    width: 28%;
     white-space: normal;
 }
 
-/* Coluna de ações nunca pode ser espremida */
-.table-container th:last-child,
-.table-container td:last-child {
-    width: 130px;
-    min-width: 130px;
-    max-width: 150px;
+#parts-table th:nth-child(2),
+#parts-table td:nth-child(2) {
+    width: 9%;
+}
+
+#parts-table th:nth-child(3),
+#parts-table td:nth-child(3) {
+    width: 10%;
     text-align: center;
 }
 
-/* Botões de ação sempre visíveis */
-.actions {
+#parts-table th:nth-child(4),
+#parts-table td:nth-child(4) {
+    width: 21%;
+    white-space: normal;
+}
+
+#parts-table th:nth-child(5),
+#parts-table td:nth-child(5) {
+    width: 12%;
+    text-align: center;
+}
+
+#parts-table th:nth-child(6),
+#parts-table td:nth-child(6),
+#parts-table th:nth-child(7),
+#parts-table td:nth-child(7) {
+    width: 9%;
+    text-align: center;
+}
+
+#parts-table th:nth-child(8),
+#parts-table td:nth-child(8) {
+    width: 110px;
+    min-width: 110px;
+    max-width: 110px;
+    text-align: center;
+}
+
+/* Ações da tabela de peças */
+#parts-table .actions {
+    width: 100%;
+    min-width: 80px;
     display: flex !important;
     justify-content: center;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: nowrap !important;
-    min-width: 110px;
 }
 
-/* Botões não podem encolher nem ser cortados */
-.btn-view,
-.btn-edit,
-.btn-delete,
-.btn-print,
-.btn-whatsapp {
+/* Botões de ação na tabela de peças */
+#parts-table .btn-edit,
+#parts-table .btn-delete,
+#parts-table .btn-view,
+#parts-table .btn-print,
+#parts-table .btn-whatsapp {
     width: 34px !important;
     height: 34px !important;
     min-width: 34px !important;
     max-width: 34px !important;
-    flex: 0 0 34px !important;
     padding: 0 !important;
-    overflow: visible !important;
+    flex: 0 0 34px !important;
+    border-radius: 8px;
 }
 
-/* Tabela de peças: largura mínima maior por ter muitas colunas */
-#parts-table {
-    min-width: 1150px;
+/* Aparência mais limpa da linha */
+#parts-table tbody tr {
+    background: #ffffff;
 }
 
-/* Tabela de compras */
-#purchases-table {
-    min-width: 1050px;
+#parts-table tbody tr:hover {
+    background: #eef7ff;
 }
 
-/* Tabela de clientes */
-#clients-table {
-    min-width: 950px;
-}
-
-/* Tabela de fornecedores */
-#suppliers-table {
-    min-width: 1050px;
-}
-
-/* Tabela de serviços */
-#services-table {
-    min-width: 1100px;
-}
-
-/* Melhor espaçamento no mobile */
-@media (max-width: 900px) {
-    .table-container {
-        border-radius: 10px;
-    }
-
-    .table-container::after {
-        content: "Arraste para o lado para ver mais →";
-        display: block;
-        padding: 8px 12px;
-        font-size: 12px;
-        color: var(--gray-500);
-        background: var(--gray-100);
-        border-top: 1px solid var(--gray-200);
-    }
+/* Badge de baixo estoque mais alinhado */
+#parts-table .badge,
+#parts-table .badge-warning {
+    margin-left: 8px;
+    vertical-align: middle;
 }
