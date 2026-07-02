@@ -5974,7 +5974,12 @@ function viewCashEntry(id) {
 
 async function loadChecklistPanel() {
     try {
-        const list = await window.electronAPI.getChecklists().catch(() => []);
+        const [list, services, clients] = await Promise.all([
+            window.electronAPI.getChecklists().catch(() => []),
+            window.electronAPI.getServices().catch(() => []),
+            window.electronAPI.getClients().catch(() => [])
+        ]);
+
         const tbody = document.getElementById('checklists-table-body');
 
         const total = list.length;
@@ -5998,6 +6003,16 @@ async function loadChecklistPanel() {
         }
 
         tbody.innerHTML = list.map(item => {
+            const serviceId = item.service_id || item.serviceId || '';
+            const service = services.find(s => s.id === serviceId);
+
+            const clientId = service?.client_id || service?.clientId || '';
+            const client = clients.find(c => c.id === clientId);
+
+            const clientName = client?.name || 'Cliente não identificado';
+            const equipment = service?.device_model || service?.equipment || 'Equipamento não informado';
+            const osNumber = service?.service_number || serviceId.substring(0, 8);
+
             const typeLabel =
                 item.type === 'entrada' ? 'Entrada' :
                 item.type === 'saida' ? 'Saída' :
@@ -6006,7 +6021,10 @@ async function loadChecklistPanel() {
 
             return `
                 <tr>
-                    <td>${escapeHtml(item.service_id || item.serviceId || '-')}</td>
+                    <td>
+                        <strong>${escapeHtml(clientName)}</strong><br>
+                        <small>OS: ${escapeHtml(String(osNumber))} • ${escapeHtml(equipment)}</small>
+                    </td>
                     <td><span class="badge badge-info">${escapeHtml(typeLabel)}</span></td>
                     <td>${escapeHtml(item.observations || item.notes || '-')}</td>
                     <td>${item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-'}</td>
@@ -6176,6 +6194,7 @@ async function viewChecklist(id) {
 
         const clientName = client?.name || 'Cliente não identificado';
         const equipment = service?.device_model || service?.equipment || 'Equipamento não informado';
+        const osNumber = service?.service_number || serviceId.substring(0, 8);
 
         const items = Array.isArray(item.items) ? item.items : [];
 
@@ -6185,22 +6204,25 @@ async function viewChecklist(id) {
             </ul>
         ` : '<p>Nenhum item detalhado.</p>';
 
-        const photos = Array.isArray(item.photos) ? item.photos : [];
+        const photos = Array.isArray(item.photos)
+            ? item.photos
+            : Array.isArray(item.checklist_photos)
+                ? item.checklist_photos
+                : [];
 
-        const photosHtml = photos.length ? `
+        const validPhotos = photos
+            .map(photo => photo.photo_url || photo.url || photo.publicUrl || photo.public_url || '')
+            .filter(Boolean);
+
+        const photosHtml = validPhotos.length ? `
             <hr style="margin:15px 0;">
             <h4>Fotos do aparelho</h4>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:12px;">
-                ${photos.map(photo => {
-                    const url = photo.photo_url || photo.url || photo.publicUrl || '';
-                    if (!url) return '';
-
-                    return `
-                        <a href="${url}" target="_blank" style="display:block;">
-                            <img src="${url}" alt="Foto do aparelho" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid #ddd;">
-                        </a>
-                    `;
-                }).join('')}
+                ${validPhotos.map(url => `
+                    <a href="${url}" target="_blank">
+                        <img src="${url}" alt="Foto do aparelho" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid #ddd;">
+                    </a>
+                `).join('')}
             </div>
         ` : `
             <hr style="margin:15px 0;">
@@ -6216,7 +6238,7 @@ async function viewChecklist(id) {
         const body = `
             <p><strong>Cliente:</strong> ${escapeHtml(clientName)}</p>
             <p><strong>Equipamento:</strong> ${escapeHtml(equipment)}</p>
-            <p><strong>Serviço/OS:</strong> ${escapeHtml(service?.service_number || serviceId || '-')}</p>
+            <p><strong>Serviço/OS:</strong> ${escapeHtml(String(osNumber))}</p>
             <p><strong>Tipo:</strong> ${escapeHtml(typeLabel)}</p>
             <p><strong>Data:</strong> ${item.created_at ? new Date(item.created_at).toLocaleString('pt-BR') : '-'}</p>
             <p><strong>Observações:</strong> ${escapeHtml(item.observations || '-')}</p>
