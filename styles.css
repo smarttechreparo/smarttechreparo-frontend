@@ -738,11 +738,11 @@ button:disabled {
     min-width: 112px;
 }
 
-.btn-view,
-.btn-edit,
-.btn-delete,
-.btn-print,
-.btn-whatsapp {
+.actions .btn-view,
+.actions .btn-edit,
+.actions .btn-delete,
+.actions .btn-print,
+.actions .btn-whatsapp {
     width: 34px !important;
     height: 34px !important;
     min-width: 34px !important;
@@ -787,6 +787,15 @@ button:disabled {
 .btn-whatsapp {
     background: #e8f5e9;
     color: #2e7d32;
+}
+
+.modal-footer .btn-whatsapp {
+    background: #e8f5e9;
+    color: #25d366;
+    width: auto !important;
+    min-width: fit-content !important;
+    max-width: none !important;
+    padding: 11px 18px !important;
 }
 
 .btn-print:hover,
@@ -899,6 +908,17 @@ button:disabled {
     background: var(--white);
     position: sticky;
     bottom: 0;
+}
+
+.modal-footer button {
+    width: auto !important;
+    min-width: fit-content !important;
+    max-width: none !important;
+    height: auto !important;
+    flex: 0 0 auto !important;
+    padding: 11px 18px !important;
+    border-radius: 10px !important;
+    white-space: nowrap;
 }
 
 /* ============ ÁREAS ESPECÍFICAS ============ */
@@ -1208,6 +1228,19 @@ button:disabled {
         flex-direction: column;
         align-items: flex-start;
     }
+   .modal-content {
+    width: 96%;
+    max-height: 92vh;
+}
+
+.modal-footer {
+    justify-content: stretch;
+}
+
+.modal-footer button {
+    width: 100% !important;
+    justify-content: center;
+}
 
     .time-display {
         text-align: left;
