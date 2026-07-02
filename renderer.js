@@ -3480,54 +3480,54 @@ let clientName = '';
         }
 
         const finalItems = Array.isArray(currentSale.items)
-            ? currentSale.items.map(item => {
-                const quantity = Number(item.quantity) || 1;
-                const price = Number(item.price) || 0;
+    ? currentSale.items.map(item => {
+        const quantity = Number(item.quantity) || 1;
+        const price = Number(item.price) || 0;
 
-                return {
-                    part_id: item.part_id || item.partId || null,
-                    partId: item.partId || item.part_id || null,
-                    name: item.name || item.partName || '',
-                    partName: item.partName || item.name || '',
-                    type: 'part',
-                    item_type: 'part',
-                    quantity,
-                    price,
-                    unitPrice: price,
-                    subtotal: quantity * price,
-                    total: quantity * price
-                };
-            })
-            : [];
+        return {
+            part_id: item.part_id || item.partId || null,
+            partId: item.partId || item.part_id || null,
+            name: item.name || item.partName || '',
+            partName: item.partName || item.name || '',
+            type: 'part',
+            item_type: 'part',
+            quantity,
+            price,
+            unitPrice: price,
+            subtotal: quantity * price,
+            total: quantity * price
+        };
+    })
+    : [];
 
-        if (laborValue > 0) {
-            finalItems.push({
-                part_id: null,
-                partId: null,
-                name: 'Mão de obra',
-                partName: 'Mão de obra',
-                type: 'labor',
-                item_type: 'labor',
-                quantity: 1,
-                price: laborValue,
-                unitPrice: laborValue,
-                subtotal: laborValue,
-                total: laborValue
-            });
-        }
+if (laborValue > 0) {
+    finalItems.push({
+        part_id: null,
+        partId: null,
+        name: 'Mão de obra',
+        partName: 'Mão de obra',
+        type: 'labor',
+        item_type: 'labor',
+        quantity: 1,
+        price: laborValue,
+        unitPrice: laborValue,
+        subtotal: laborValue,
+        total: laborValue
+    });
+}
 
-        const saleData = {
-            client_id: clientId,
-            clientId: clientId,
+const saleData = {
+    client_id: clientId,
+    clientId: clientId,
 
-            items: finalItems,
+    items: finalItems,
 
-            subtotal: totals.subtotal,
-            labor: totals.labor,
-            discount_amount: totals.autoDiscount,
-            discount: totals.autoDiscount,
-            total_amount: totals.total,
-            total: totals.total,
+    subtotal: totals.subtotal,
+    labor: totals.labor,
+    discount_amount: totals.autoDiscount,
+    discount: totals.autoDiscount,
+    total_amount: totals.total,
+    total: totals.total,
 
             payment_method: paymentMethod,
             paymentMethod: paymentMethod,
