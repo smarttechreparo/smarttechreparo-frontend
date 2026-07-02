@@ -29,23 +29,37 @@
             </div>
         </header>
 
-        <!-- Abas de Navegação -->
-        <nav class="tabs">
-            <button class="tab-button active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
-            <button class="tab-button" data-tab="clients"><i class="fas fa-users"></i> Clientes</button>
-            <button class="tab-button" data-tab="suppliers"><i class="fas fa-truck"></i> Fornecedores</button>
-            <button class="tab-button" data-tab="parts"><i class="fas fa-microchip"></i> Peças</button>
-            <button class="tab-button" data-tab="stock"><i class="fas fa-boxes"></i> Controle de Estoque</button>
-            <button class="tab-button" data-tab="sales"><i class="fas fa-shopping-cart"></i> Vendas</button>
-            <button class="tab-button" data-tab="sales-history"><i class="fas fa-clipboard-list"></i> Histórico de Vendas</button>
-            <button class="tab-button" data-tab="services"><i class="fas fa-laptop-medical"></i> Serviços</button>
-            <button class="tab-button" data-tab="purchases"><i class="fas fa-truck-loading"></i> Compras</button>
-            <button class="tab-button" data-tab="financial"><i class="fas fa-chart-line"></i> Financeiro</button>
-            <button class="tab-button" data-tab="settings"><i class="fas fa-cog"></i> Configurações</button>
-        </nav>
+        <!-- Layout com Sidebar -->
+        <div class="app-shell">
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-top">
+                    <div class="sidebar-logo">
+                        <i class="fas fa-tools"></i>
+                        <span>Smart Tech Reparo</span>
+                    </div>
+                    <div class="sidebar-subtitle">Sistema Web</div>
+                </div>
 
-        <!-- Conteúdo das Abas -->
-        <main class="content">
+                <nav class="sidebar-nav" aria-label="Menu principal">
+                    <button class="tab-button active" data-tab="dashboard" title="Dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></button>
+                    <button class="tab-button" data-tab="clients" title="Clientes"><i class="fas fa-users"></i><span>Clientes</span></button>
+                    <button class="tab-button" data-tab="suppliers" title="Fornecedores"><i class="fas fa-truck"></i><span>Fornecedores</span></button>
+                    <button class="tab-button" data-tab="parts" title="Peças"><i class="fas fa-microchip"></i><span>Peças</span></button>
+                    <button class="tab-button" data-tab="stock" title="Estoque"><i class="fas fa-boxes"></i><span>Estoque</span></button>
+                    <button class="tab-button" data-tab="sales" title="Vendas"><i class="fas fa-shopping-cart"></i><span>Vendas</span></button>
+                    <button class="tab-button" data-tab="sales-history" title="Histórico de Vendas"><i class="fas fa-clipboard-list"></i><span>Histórico de Vendas</span></button>
+                    <button class="tab-button" data-tab="services" title="Serviços / OS"><i class="fas fa-laptop-medical"></i><span>Serviços / OS</span></button>
+                    <button class="tab-button" data-tab="checklists" title="Checklist"><i class="fas fa-clipboard-check"></i><span>Checklist</span></button>
+                    <button class="tab-button" data-tab="purchases" title="Compras"><i class="fas fa-truck-loading"></i><span>Compras</span></button>
+                    <button class="tab-button" data-tab="financial" title="Financeiro"><i class="fas fa-chart-line"></i><span>Financeiro</span></button>
+                    <button class="tab-button" data-tab="cash" title="Caixa"><i class="fas fa-cash-register"></i><span>Caixa</span></button>
+                    <button class="tab-button" data-tab="settings" title="Configurações"><i class="fas fa-cog"></i><span>Configurações</span></button>
+                </nav>
+            </aside>
+
+            <div class="app-main">
+                <!-- Conteúdo das Abas -->
+                <main class="content">
             <!-- Dashboard -->
             <section id="dashboard" class="tab-content active">
                 <div class="dashboard-header">
@@ -468,6 +482,60 @@
                 </div>
             </section>
 
+
+            <!-- Checklist -->
+            <section id="checklists" class="tab-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-clipboard-check"></i> Checklist de Entrada e Saída</h2>
+                    <div class="header-actions">
+                        <button class="btn-primary" onclick="if(window.showChecklistForm){showChecklistForm()}else{showNotification('Formulário de checklist será configurado no renderer.js', 'info')}"><i class="fas fa-plus"></i> Novo Checklist</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-mobile-alt"></i></div><div class="stat-info"><h3>Checklists de Entrada</h3><p id="checklist-entry-count">0</p></div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-clipboard-check"></i></div><div class="stat-info"><h3>Checklists Finalizados</h3><p id="checklist-finished-count">0</p></div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-camera"></i></div><div class="stat-info"><h3>Fotos Registradas</h3><p id="checklist-photo-count">0</p></div></div>
+                </div>
+
+                <div class="table-container">
+                    <h3><i class="fas fa-history"></i> Histórico de Checklists</h3>
+                    <table id="checklists-table">
+                        <thead><tr><th>Serviço</th><th>Tipo</th><th>Observações</th><th>Data</th><th>Ações</th></tr></thead>
+                        <tbody id="checklists-table-body"><tr><td colspan="5" class="no-data">Nenhum checklist cadastrado</td></tr></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Caixa -->
+            <section id="cash" class="tab-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-cash-register"></i> Caixa</h2>
+                    <div class="header-actions">
+                        <button class="btn-primary" id="btn-open-cash" onclick="if(window.showOpenCashModal){showOpenCashModal()}else{showNotification('Abertura de caixa será configurada no renderer.js', 'info')}"><i class="fas fa-lock-open"></i> Abrir Caixa</button>
+                        <button class="btn-success" id="btn-cash-entry" onclick="if(window.showCashEntryModal){showCashEntryModal('entrada')}else{showNotification('Entrada de caixa será configurada no renderer.js', 'info')}"><i class="fas fa-plus-circle"></i> Entrada</button>
+                        <button class="btn-warning" id="btn-cash-exit" onclick="if(window.showCashEntryModal){showCashEntryModal('saida')}else{showNotification('Saída de caixa será configurada no renderer.js', 'info')}"><i class="fas fa-minus-circle"></i> Saída</button>
+                        <button class="btn-danger" id="btn-close-cash" onclick="if(window.showCloseCashModal){showCloseCashModal()}else{showNotification('Fechamento de caixa será configurado no renderer.js', 'info')}"><i class="fas fa-lock"></i> Fechar Caixa</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-info-circle"></i></div><div class="stat-info"><h3>Status do Caixa</h3><p id="cash-status-label">Fechado</p></div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-wallet"></i></div><div class="stat-info"><h3>Saldo de Abertura</h3><p id="cash-opening-balance">R$ 0,00</p></div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-arrow-circle-up"></i></div><div class="stat-info"><h3>Entradas</h3><p id="cash-total-entry">R$ 0,00</p></div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-arrow-circle-down"></i></div><div class="stat-info"><h3>Saídas</h3><p id="cash-total-exit">R$ 0,00</p></div></div>
+                    <div class="stat-card"><div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div><div class="stat-info"><h3>Saldo Atual</h3><p id="cash-current-balance">R$ 0,00</p></div></div>
+                </div>
+
+                <div class="table-container">
+                    <h3><i class="fas fa-list"></i> Movimentações do Caixa</h3>
+                    <table id="cash-table">
+                        <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Forma</th><th>Valor</th><th>Ações</th></tr></thead>
+                        <tbody id="cash-table-body"><tr><td colspan="6" class="no-data">Nenhuma movimentação registrada</td></tr></tbody>
+                    </table>
+                </div>
+            </section>
+
             <!-- Configurações -->
             <section id="settings" class="tab-content">
                 <div class="section-header"><h2><i class="fas fa-cog"></i> Configurações</h2></div>
@@ -620,7 +688,9 @@
                     </div>
                 </div>
             </div>
-        </main>
+                </main>
+            </div>
+        </div>
 
         <footer class="footer">
             <div class="footer-info">
