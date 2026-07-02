@@ -6005,6 +6005,14 @@ async function showChecklistForm() {
                 <label>Observações</label>
                 <textarea id="modal-checklist-observations" rows="4" placeholder="Descreva marcas, riscos, trincos, acessórios recebidos ou qualquer observação importante..."></textarea>
             </div>
+            
+                        <div class="form-group">
+                <label>Fotos do aparelho</label>
+                <input type="file" id="modal-checklist-photos" accept="image/*" multiple>
+                <small style="color:#6c757d; margin-top:6px;">
+                    Você pode anexar fotos da frente, traseira, laterais, tela, conector e marcas do aparelho.
+                </small>
+            </div>
 
             <div class="form-group">
                 <label>Assinatura / responsável</label>
@@ -6029,18 +6037,21 @@ async function showChecklistForm() {
                         }
 
                         const checkedItems = Array.from(document.querySelectorAll('.modal-check-item')).map(input => ({
-                            label: input.value,
-                            checked: input.checked
-                        }));
-
-                        const result = await window.electronAPI.saveChecklist({
-                            service_id: serviceId,
-                            type,
-                            items: checkedItems,
-                            observations,
-                            technician_signature,
-                            photos: []
-                        });
+                                label: input.value,
+                                checked: input.checked
+                            }));
+                            
+                            const photosInput = document.getElementById('modal-checklist-photos');
+                            const photos = photosInput ? Array.from(photosInput.files || []) : [];
+                            
+                            const result = await window.electronAPI.saveChecklist({
+                                service_id: serviceId,
+                                type,
+                                items: checkedItems,
+                                observations,
+                                technician_signature,
+                                photos
+                            });
 
                         if (!result?.success) {
                             throw new Error(result?.error || 'Erro ao salvar checklist');
