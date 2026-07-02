@@ -356,41 +356,49 @@ getCashStatus: async () => {
         return result.data || null;
     },
 
-    getChecklistsByService: async (serviceId) => {
-        const result = await requestJson(`${API_URL}/checklist/service/${serviceId}`);
+    getChecklistsByService: async (service_id) => {
+        const result = await requestJson(`${API_URL}/checklist/service/${service_id}`);
         return result.data || [];
     },
 
     saveChecklist: async (checklist) => {
-        const formData = new FormData();
+    const formData = new FormData();
 
-        formData.append('service_id', checklist.service_id || checklist.serviceId || '');
-        formData.append('type', checklist.type || 'entrada');
-        formData.append('items', JSON.stringify(checklist.items || {}));
-        formData.append('observations', checklist.observations || '');
-        formData.append('technician_signature', checklist.technician_signature || '');
+    const service_id = checklist.service_id || '';
 
-        const photos = checklist.photos || [];
+    formData.append('service_id', service_id);
+    formData.append('type', checklist.type || 'entrada');
+    formData.append('items', JSON.stringify(checklist.items || []));
+    formData.append('observations', checklist.observations || '');
+    formData.append('technician_signature', checklist.technician_signature || '');
 
-        photos.forEach(photo => {
-            if (photo instanceof File) {
-                formData.append('photos', photo);
-            }
-        });
+    const photos = Array.isArray(checklist.photos) ? checklist.photos : [];
 
-        const response = await fetch(`${API_URL}/checklist`, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || 'Erro ao salvar checklist.');
+    photos.forEach(photo => {
+        if (photo instanceof File) {
+            formData.append('photos', photo);
         }
+    });
 
-        return result;
-    },
+    console.log('📸 Enviando checklist:', {
+        service_id: service_id,
+        type: checklist.type || 'entrada',
+        totalPhotos: photos.length
+    });
+
+    const response = await fetch(`${API_URL}/checklist`, {
+        method: 'POST',
+        body: formData
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Erro ao salvar checklist.');
+    }
+
+    return result;
+},
 
     deleteChecklist: async (id) => {
         return requestJson(`${API_URL}/checklist/${id}`, {
@@ -4221,10 +4229,10 @@ function editService(id) {
     showServiceForm(id); 
 }
 
-async function deleteService(serviceId) {
+async function deleteService(service_id) {
     confirmAction('Excluir este serviço?', async () => {
         try {
-            const result = await window.electronAPI.deleteService(serviceId);
+            const result = await window.electronAPI.deleteService(service_id);
 
             if (result?.success) {
                 showNotification('Serviço excluído com sucesso!', 'success');
@@ -4245,10 +4253,10 @@ async function deleteService(serviceId) {
     });
 }
 
-async function convertServiceToSale(serviceId) {
+async function convertServiceToSale(service_id) {
     try {
         const services = await window.electronAPI.getServices();
-        const service = services.find(s => s.id === serviceId);
+        const service = services.find(s => s.id === service_id);
         if (!service) { showNotification('Serviço não encontrado', 'error'); return; }
         
         const clients = await window.electronAPI.getClients();
@@ -4329,10 +4337,10 @@ async function convertServiceToSale(serviceId) {
     }
 }
 
-async function sendViaWhatsApp(serviceId) {
+async function sendViaWhatsApp(service_id) {
     try {
         const services = await window.electronAPI.getServices();
-        const service = services.find(s => s.id === serviceId);
+        const service = services.find(s => s.id === service_id);
         if (!service) {
             showNotification('Serviço não encontrado', 'error');
             return;
@@ -5520,8 +5528,8 @@ async function loadChecklistPanel() {
         }
 
         tbody.innerHTML = list.map(item => {
-            const serviceId = item.service_id || item.serviceId || '';
-            const service = services.find(s => s.id === serviceId);
+            const service_id = item.service_id || item.service_id || '';
+            const service = services.find(s => s.id === service_id);
 
             const clientId = service?.client_id || service?.clientId || '';
             const client = clients.find(c => c.id === clientId);
@@ -6003,15 +6011,15 @@ async function loadChecklistPanel() {
         }
 
         tbody.innerHTML = list.map(item => {
-            const serviceId = item.service_id || item.serviceId || '';
-            const service = services.find(s => s.id === serviceId);
+            const service_id = item.service_id || item.service_id || '';
+            const service = services.find(s => s.id === service_id);
 
             const clientId = service?.client_id || service?.clientId || '';
             const client = clients.find(c => c.id === clientId);
 
             const clientName = client?.name || 'Cliente não identificado';
             const equipment = service?.device_model || service?.equipment || 'Equipamento não informado';
-            const osNumber = service?.service_number || serviceId.substring(0, 8);
+            const osNumber = service?.service_number || service_id.substring(0, 8);
 
             const typeLabel =
                 item.type === 'entrada' ? 'Entrada' :
@@ -6118,12 +6126,12 @@ async function showChecklistForm() {
                 className: 'btn-primary',
                 onClick: async () => {
                     try {
-                        const serviceId = document.getElementById('modal-checklist-service')?.value || '';
+                        const service_id = document.getElementById('modal-checklist-service')?.value || '';
                         const type = document.getElementById('modal-checklist-type')?.value || 'entrada';
                         const observations = document.getElementById('modal-checklist-observations')?.value || '';
                         const technician_signature = document.getElementById('modal-checklist-signature')?.value || '';
 
-                        if (!serviceId) {
+                        if (!service_id) {
                             showNotification('Selecione um serviço para o checklist', 'warning');
                             return;
                         }
@@ -6137,7 +6145,7 @@ async function showChecklistForm() {
                             const photos = photosInput ? Array.from(photosInput.files || []) : [];
                             
                             const result = await window.electronAPI.saveChecklist({
-                                service_id: serviceId,
+                                service_id: service_id,
                                 type,
                                 items: checkedItems,
                                 observations,
@@ -6186,15 +6194,15 @@ async function viewChecklist(id) {
             window.electronAPI.getClients().catch(() => [])
         ]);
 
-        const serviceId = item.service_id || item.serviceId || '';
-        const service = services.find(s => s.id === serviceId);
+        const service_id = item.service_id || item.service_id || '';
+        const service = services.find(s => s.id === service_id);
 
         const clientId = service?.client_id || service?.clientId || '';
         const client = clients.find(c => c.id === clientId);
 
         const clientName = client?.name || 'Cliente não identificado';
         const equipment = service?.device_model || service?.equipment || 'Equipamento não informado';
-        const osNumber = service?.service_number || serviceId.substring(0, 8);
+        const osNumber = service?.service_number || service_id.substring(0, 8);
 
         const items = Array.isArray(item.items) ? item.items : [];
 
