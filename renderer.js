@@ -1740,6 +1740,8 @@ function showTab(tabId) {
         else if (tabId === 'settings') await loadSettings();
         else if (tabId === 'purchases') { await loadPurchases(); }
         else if (tabId === 'financial') { await loadFinancialData(); }
+        else if (tabId === 'cash') { await loadCashPanel(); }
+        else if (tabId === 'checklists') { await loadChecklistPanel(); }
     }, 50);
 }
 
@@ -5406,6 +5408,84 @@ async function printService(id) {
             else if (digits.length === 10) phoneFormatted = `(${digits.substring(0,2)}) ${digits.substring(2,6)}-${digits.substring(6)}`;
             else phoneFormatted = clientPhone;
         }
+        async function loadCashPanel() {
+    try {
+        const status = await window.electronAPI.getCashStatus();
+
+        const statusLabel = document.getElementById('cash-status-label');
+        const openingBalance = document.getElementById('cash-opening-balance');
+        const currentBalance = document.getElementById('cash-current-balance');
+        const tbody = document.getElementById('cash-table-body');
+
+        if (statusLabel) {
+            statusLabel.textContent = status?.status === 'aberto' ? 'Aberto' : 'Fechado';
+        }
+
+        if (openingBalance) {
+            openingBalance.textContent = `R$ ${(Number(status?.opening_balance) || 0).toFixed(2)}`;
+        }
+
+        if (currentBalance) {
+            const current = Number(status?.closing_balance ?? status?.opening_balance ?? 0);
+            currentBalance.textContent = `R$ ${current.toFixed(2)}`;
+        }
+
+        const movements = await window.electronAPI.getCash();
+        if (tbody) {
+            if (!movements || movements.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="no-data">Nenhuma movimentação registrada</td></tr>`;
+            } else {
+                tbody.innerHTML = movements.map(item => `
+                    <tr>
+                        <td>${item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                        <td>${item.status || '-'}</td>
+                        <td>R$ ${(Number(item.opening_balance || item.closing_balance || 0)).toFixed(2)}</td>
+                        <td>${item.notes || '-'}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn-view" title="Visualizar"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar caixa:', error);
+        showNotification('Erro ao carregar caixa', 'error');
+    }
+}
+
+async function loadChecklistPanel() {
+    try {
+        const list = await window.electronAPI.getChecklists();
+        const tbody = document.getElementById('checklists-table-body');
+
+        if (!tbody) return;
+
+        if (!list || list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="no-data">Nenhum checklist cadastrado</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = list.map(item => `
+            <tr>
+                <td>${item.service_id || '-'}</td>
+                <td>${item.type || '-'}</td>
+                <td>${item.observations || '-'}</td>
+                <td>${item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                <td>
+                    <div class="actions">
+                        <button class="btn-view" title="Visualizar"><i class="fas fa-eye"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Erro ao carregar checklists:', error);
+        showNotification('Erro ao carregar checklists', 'error');
+    }
+}
         
         const win = window.open('', '_blank', 'width=800,height=600');
         
