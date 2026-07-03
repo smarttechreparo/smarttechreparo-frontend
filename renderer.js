@@ -308,6 +308,11 @@ saveCashEntry: async (entry) => {
         })
     });
 },
+    deleteCashEntry: async (id) => {
+    return requestJson(`${API_URL}/cash/${id}`, {
+        method: 'DELETE'
+    });
+},
 
 openCash: async (data) => {
     return requestJson(`${API_URL}/cash/open`, {
@@ -5780,6 +5785,10 @@ async function loadCashPanel() {
                             <button class="btn-view" title="Visualizar" onclick="viewCashEntry('${item.id || ''}')">
                                 <i class="fas fa-eye"></i>
                             </button>
+
+                        <button class="btn-delete" title="Excluir" onclick="deleteCashEntry('${item.id || ''}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -6389,6 +6398,36 @@ async function loadDashboardPendingPanel() {
         }
     }
 }
+async function deleteCashEntry(id) {
+    if (!id) {
+        showNotification('Movimentação inválida.', 'error');
+        return;
+    }
+
+    confirmAction('Deseja excluir esta movimentação do caixa?', async () => {
+        try {
+            const result = await window.electronAPI.deleteCashEntry(id);
+
+            if (!result?.success) {
+                throw new Error(result?.error || 'Erro ao excluir movimentação.');
+            }
+
+            showNotification('Movimentação excluída com sucesso!', 'success');
+
+            await loadCashPanel();
+
+            if (typeof loadDashboard === 'function') {
+                await loadDashboard();
+            }
+
+        } catch (error) {
+            console.error('Erro ao excluir movimentação:', error);
+            showNotification(error.message || 'Erro ao excluir movimentação.', 'error');
+        }
+    });
+}
+
+window.deleteCashEntry = deleteCashEntry;
 
 window.loadCashPanel = loadCashPanel;
 window.showOpenCashModal = showOpenCashModal;
