@@ -115,6 +115,25 @@
                         <button class="action-btn" onclick="showTab('services'); showServiceForm();"><i class="fas fa-laptop-medical"></i> Novo Serviço</button>
                     </div>
                 </div>
+                <div class="table-container" id="dashboard-pending-panel">
+    <h3><i class="fas fa-tasks"></i> Pendências do Dia</h3>
+
+    <table id="dashboard-pending-table">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th>Status</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody id="dashboard-pending-body">
+            <tr>
+                <td colspan="4" class="no-data">Nenhuma pendência encontrada</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
             </section>
 
             <!-- Clientes -->
