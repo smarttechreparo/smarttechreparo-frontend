@@ -1438,25 +1438,6 @@ function updateClock() {
     if (dateEl) dateEl.textContent = now.toLocaleDateString('pt-BR');
 }
 
-//function updateSystemStatus() {
-    const statusEl = document.getElementById('system-status');
-    const memEl = document.getElementById('memory-usage');
-    const sysDateEl = document.getElementById('system-date');
-    const memFooter = document.getElementById('memory-footer');
-    
-    if (statusEl) statusEl.textContent = 'Online';
-    if (sysDateEl) sysDateEl.textContent = new Date().toLocaleDateString('pt-BR');
-    
-    const memUsage = Math.round(Math.random() * 50 + 50);
-    if (memEl) memEl.textContent = memUsage + ' MB';
-    if (memFooter) memFooter.textContent = `Memória: ${memUsage} MB`;
-    
-    const storageUsage = document.getElementById('storage-usage');
-    if (storageUsage) {
-        storageUsage.textContent = `Armazenamento: ${Math.round(Math.random() * 10 + 5)} MB`;
-    }
-}
-
 function getServiceStatusName(status) {
     const s = { 
         orcamento:'Orçamento', 
