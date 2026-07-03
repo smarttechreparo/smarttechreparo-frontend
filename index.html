@@ -115,10 +115,6 @@
                         <button class="action-btn" onclick="showTab('services'); showServiceForm();"><i class="fas fa-laptop-medical"></i> Novo Serviço</button>
                     </div>
                 </div>
-                <div class="recent-activity">
-                    <h3>Atividade Recente</h3>
-                    <div id="activity-list" class="activity-list"><div class="no-activity">Nenhuma atividade recente</div></div>
-                </div>
             </section>
 
             <!-- Clientes -->
@@ -651,13 +647,6 @@
                     </form>
                 </div>
                 <div class="form-container" style="margin-top: 30px;">
-                    <h3><i class="fas fa-database"></i> Status do Sistema</h3>
-                    <div class="system-status">
-                        <div class="status-item"><i class="fas fa-circle status-online"></i><span>Sistema: <strong id="system-status">Online</strong></span></div>
-                        <div class="status-item"><i class="fas fa-database"></i><span>Banco de Dados: <strong>Local</strong></span></div>
-                        <div class="status-item"><i class="fas fa-calendar"></i><span>Data do Sistema: <strong id="system-date">--/--/----</strong></span></div>
-                        <div class="status-item"><i class="fas fa-memory"></i><span>Memória Usada: <strong id="memory-usage">-- MB</strong></span></div>
-                    </div>
                     <div class="form-actions" style="margin-top: 20px;">
                         <button class="btn-secondary" onclick="backupDatabase()"><i class="fas fa-save"></i> Backup do Banco de Dados</button>
                         <button class="btn-secondary" onclick="restoreDatabase()"><i class="fas fa-undo"></i> Restaurar Backup</button>
