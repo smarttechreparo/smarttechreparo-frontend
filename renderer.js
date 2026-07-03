@@ -6138,12 +6138,21 @@ async function showChecklistForm() {
             </div>
 
             <div class="form-group">
-                <label>Fotos do aparelho</label>
-                <input type="file" id="modal-checklist-photos" accept="image/*" multiple>
-                <small style="color:#2563eb; font-weight:600; display:block; margin-top:6px;">
-                    Você pode anexar até 10 fotos do aparelho.
-            </small>
-            </div>
+    <label>Fotos do aparelho</label>
+
+    <input type="file" id="modal-checklist-photos" accept="image/*" multiple>
+
+    <small style="color:#2563eb; font-weight:600; display:block; margin-top:6px;">
+        Você pode anexar até 10 fotos. Se escolher errado, remova antes de salvar.
+    </small>
+
+    <div id="checklist-photo-preview" style="
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+        gap:10px;
+        margin-top:12px;
+    "></div>
+</div>
 
             <div class="form-group">
                 <label>Assinatura / responsável</label>
@@ -6171,19 +6180,15 @@ async function showChecklistForm() {
                             label: input.value,
                             checked: input.checked
                         }));
-
-                       const photosInput = document.getElementById('modal-checklist-photos');
-                        let photos = photosInput ? Array.from(photosInput.files || []) : [];
                         
-                        if (photos.length > 10) {
-                            showNotification('Selecione no máximo 10 fotos.', 'warning');
-                            photos = photos.slice(0, 10);
-                        }
-
-                    console.log('📸 Fotos selecionadas no checklist:', photos.length);
-
+                        const photos = Array.isArray(window.selectedChecklistPhotos)
+                            ? window.selectedChecklistPhotos.slice(0, 10)
+                            : [];
+                        
+                        console.log('📸 Fotos selecionadas no checklist:', photos.length);
+                        
                         const result = await window.electronAPI.saveChecklist({
-                            service_id,
+                            service_id: service_id,
                             type,
                             items: checkedItems,
                             observations,
@@ -6211,6 +6216,111 @@ async function showChecklistForm() {
                 onClick: () => closeModal()
             }
         ]);
+        window.selectedChecklistPhotos = [];
+
+setTimeout(() => {
+    const photosInput = document.getElementById('modal-checklist-photos');
+    const preview = document.getElementById('checklist-photo-preview');
+
+    if (!photosInput || !preview) return;
+
+    function renderPhotoPreview() {
+        if (!selectedChecklistPhotos.length) {
+            preview.innerHTML = `
+                <div style="
+                    grid-column:1/-1;
+                    color:#64748b;
+                    font-size:13px;
+                    padding:10px;
+                    border:1px dashed #cbd5e1;
+                    border-radius:10px;
+                    text-align:center;
+                ">
+                    Nenhuma foto selecionada.
+                </div>
+            `;
+            return;
+        }
+
+        preview.innerHTML = selectedChecklistPhotos.map((file, index) => {
+            const url = URL.createObjectURL(file);
+
+            return `
+                <div style="
+                    position:relative;
+                    border:1px solid #dbe3ef;
+                    border-radius:12px;
+                    padding:6px;
+                    background:#fff;
+                    box-shadow:0 2px 8px rgba(15,23,42,.08);
+                ">
+                    <img src="${url}" alt="Foto ${index + 1}" style="
+                        width:100%;
+                        height:95px;
+                        object-fit:cover;
+                        border-radius:9px;
+                        display:block;
+                    ">
+
+                    <button type="button" onclick="removeChecklistPreviewPhoto(${index})" title="Remover foto" style="
+                        position:absolute;
+                        top:2px;
+                        right:2px;
+                        width:24px;
+                        height:24px;
+                        border:none;
+                        border-radius:999px;
+                        background:#ef4444;
+                        color:#fff;
+                        font-weight:800;
+                        cursor:pointer;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                    ">
+                        ×
+                    </button>
+
+                    <small style="
+                        display:block;
+                        margin-top:5px;
+                        color:#2563eb;
+                        font-size:11px;
+                        white-space:nowrap;
+                        overflow:hidden;
+                        text-overflow:ellipsis;
+                    ">
+                        ${escapeHtml(file.name)}
+                    </small>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.removeChecklistPreviewPhoto = function(index) {
+        selectedChecklistPhotos.splice(index, 1);
+        renderPhotoPreview();
+    };
+
+    photosInput.addEventListener('change', () => {
+        const newFiles = Array.from(photosInput.files || []);
+
+        selectedChecklistPhotos = [
+            ...selectedChecklistPhotos,
+            ...newFiles
+        ].slice(0, 5);
+
+        if (newFiles.length > 0 && selectedChecklistPhotos.length >= 5) {
+            showNotification('Limite de até 5 fotos no checklist.', 'info');
+        }
+
+        photosInput.value = '';
+        renderPhotoPreview();
+    });
+
+    renderPhotoPreview();
+
+}, 100);
 
     } catch (error) {
         console.error(error);
