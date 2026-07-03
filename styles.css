@@ -1354,3 +1354,117 @@ button:disabled {
     width: 15%;
     text-align: center;
 }
+/* =========================================
+   RODAPÉ MAIS VISÍVEL E COM CORES CHAMATIVAS
+========================================= */
+
+.footer,
+.app-footer,
+.system-footer {
+    color: #1e3a8a !important;
+    font-weight: 600;
+}
+
+/* textos gerais do rodapé */
+.footer span,
+.footer small,
+.footer a,
+.app-footer span,
+.app-footer small,
+.app-footer a,
+.system-footer span,
+.system-footer small,
+.system-footer a {
+    color: #1e3a8a !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* Smart Tech e CNPJ em azul */
+.footer .footer-brand,
+.footer .footer-cnpj,
+.app-footer .footer-brand,
+.app-footer .footer-cnpj,
+.system-footer .footer-brand,
+.system-footer .footer-cnpj {
+    color: #2563eb !important;
+    font-weight: 700;
+}
+
+/* ícone do telefone vermelho */
+.footer .fa-phone,
+.footer .fa-phone-alt,
+.footer .fa-mobile,
+.app-footer .fa-phone,
+.app-footer .fa-phone-alt,
+.app-footer .fa-mobile,
+.system-footer .fa-phone,
+.system-footer .fa-phone-alt,
+.system-footer .fa-mobile {
+    color: #ef4444 !important;
+}
+
+/* texto do telefone mais forte */
+.footer .footer-phone,
+.app-footer .footer-phone,
+.system-footer .footer-phone {
+    color: #dc2626 !important;
+    font-weight: 700;
+}
+
+/* WhatsApp verde */
+.footer .fa-whatsapp,
+.footer a[href*="wa.me"],
+.app-footer .fa-whatsapp,
+.app-footer a[href*="wa.me"],
+.system-footer .fa-whatsapp,
+.system-footer a[href*="wa.me"] {
+    color: #22c55e !important;
+    font-weight: 700;
+}
+
+/* ícone do prédio / CNPJ */
+.footer .fa-building,
+.footer .fa-id-card,
+.app-footer .fa-building,
+.app-footer .fa-id-card,
+.system-footer .fa-building,
+.system-footer .fa-id-card {
+    color: #2563eb !important;
+}
+
+/* Online Cloud em verde */
+.footer #memory-footer,
+.footer #memory-footer i,
+.app-footer #memory-footer,
+.app-footer #memory-footer i,
+.system-footer #memory-footer,
+.system-footer #memory-footer i {
+    color: #16a34a !important;
+    font-weight: 700;
+}
+
+/* Railway API em laranja */
+.footer #storage-usage,
+.footer #storage-usage i,
+.app-footer #storage-usage,
+.app-footer #storage-usage i,
+.system-footer #storage-usage,
+.system-footer #storage-usage i {
+    color: #f59e0b !important;
+    font-weight: 700;
+}
+
+/* separadores do rodapé */
+.footer .separator,
+.app-footer .separator,
+.system-footer .separator {
+    color: #64748b !important;
+}
+
+/* melhora visual em telas pequenas */
+.footer,
+.app-footer,
+.system-footer {
+    font-size: 14px;
+}
