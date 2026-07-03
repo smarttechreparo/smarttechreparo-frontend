@@ -1767,8 +1767,7 @@ async function loadDashboard() {
         setText('pending-services', stats.pendingServices || 0);
         setText('overdue-payments', stats.overduePayments || 0);
 
-        //await loadRecentActivity();
-
+        await loadDashboardPendingPanel();
         console.log('✅ Dashboard carregado');
 
     } catch (error) {
@@ -6280,6 +6279,115 @@ async function deleteChecklist(id) {
             showNotification(error.message || 'Erro ao excluir checklist', 'error');
         }
     });
+}
+
+async function loadDashboardPendingPanel() {
+    try {
+        const [services, parts, sales, cashStatus] = await Promise.all([
+            window.electronAPI.getServices().catch(() => []),
+            window.electronAPI.getParts().catch(() => []),
+            window.electronAPI.getSales().catch(() => []),
+            window.electronAPI.getCashStatus
+                ? window.electronAPI.getCashStatus().catch(() => ({}))
+                : Promise.resolve({})
+        ]);
+
+        const tbody = document.getElementById('dashboard-pending-body');
+
+        if (!tbody) return;
+
+        const pendingItems = [];
+
+        services
+            .filter(service => {
+                const status = service.status || '';
+                return ['orcamento', 'em_andamento', 'aguardando_peca'].includes(status);
+            })
+            .slice(0, 6)
+            .forEach(service => {
+                const statusName = getServiceStatusName(service.status || 'orcamento');
+
+                pendingItems.push({
+                    type: 'Serviço',
+                    description: `${service.service_number || service.id?.substring(0, 8) || ''} - ${service.device_model || service.equipment || 'Equipamento'}`,
+                    status: statusName,
+                    action: 'services'
+                });
+            });
+
+        parts
+            .filter(part => {
+                const quantity = Number(part.quantity || 0);
+                const minStock = Number(part.min_stock || 0);
+                return minStock > 0 && quantity <= minStock;
+            })
+            .slice(0, 5)
+            .forEach(part => {
+                pendingItems.push({
+                    type: 'Estoque',
+                    description: `${part.name || 'Peça'} com ${Number(part.quantity || 0)} unidade(s)`,
+                    status: 'Baixo estoque',
+                    action: 'parts'
+                });
+            });
+
+        sales
+            .filter(sale => {
+                const status = sale.status || '';
+                return ['pendente', 'orcamento'].includes(status);
+            })
+            .slice(0, 5)
+            .forEach(sale => {
+                pendingItems.push({
+                    type: 'Venda',
+                    description: `Venda de R$ ${(Number(sale.total_amount ?? sale.total ?? 0) || 0).toFixed(2)}`,
+                    status: sale.status || 'Pendente',
+                    action: 'sales-history'
+                });
+            });
+
+        const cashIsOpen =
+            cashStatus?.isOpen === true ||
+            cashStatus?.is_open === true ||
+            cashStatus?.status === 'aberto' ||
+            cashStatus?.cash_register?.status === 'aberto';
+
+        pendingItems.push({
+            type: 'Caixa',
+            description: cashIsOpen ? 'Caixa aberto no momento' : 'Caixa fechado',
+            status: cashIsOpen ? 'Aberto' : 'Fechado',
+            action: 'cash'
+        });
+
+        if (!pendingItems.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="no-data">Nenhuma pendência encontrada</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = pendingItems.map(item => `
+            <tr>
+                <td><strong>${escapeHtml(item.type)}</strong></td>
+                <td>${escapeHtml(item.description)}</td>
+                <td><span class="badge badge-info">${escapeHtml(item.status)}</span></td>
+                <td>
+                    <div class="actions">
+                        <button class="btn-view" onclick="showTab('${item.action}')" title="Abrir">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+    } catch (error) {
+        console.error('Erro ao carregar pendências do dashboard:', error);
+
+        const tbody = document.getElementById('dashboard-pending-body');
+
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="4" class="no-data">Erro ao carregar pendências</td></tr>';
+        }
+    }
 }
 
 window.loadCashPanel = loadCashPanel;
