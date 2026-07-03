@@ -549,8 +549,14 @@ getHistory: async () => {
 function updateHardwareStatsMock() {
     const memFooter = document.getElementById('memory-footer');
     const storageUsage = document.getElementById('storage-usage');
-    if (memFooter) memFooter.innerHTML = '<i class="fas fa-wifi"></i> Online Cloud';
-    if (storageUsage) storageUsage.innerHTML = '<i class="fas fa-server"></i> Railway API';
+
+    if (memFooter) {
+        memFooter.innerHTML = '<i class="fas fa-wifi"></i> Online Cloud';
+    }
+
+    if (storageUsage) {
+        storageUsage.innerHTML = '<i class="fas fa-server"></i> Railway API';
+    }
 }
 setTimeout(updateHardwareStatsMock, 1000);
 setInterval(updateHardwareStatsMock, 15000);
@@ -1432,7 +1438,7 @@ function updateClock() {
     if (dateEl) dateEl.textContent = now.toLocaleDateString('pt-BR');
 }
 
-function updateSystemStatus() {
+//function updateSystemStatus() {
     const statusEl = document.getElementById('system-status');
     const memEl = document.getElementById('memory-usage');
     const sysDateEl = document.getElementById('system-date');
@@ -1777,7 +1783,7 @@ async function loadDashboard() {
         setText('pending-services', stats.pendingServices || 0);
         setText('overdue-payments', stats.overduePayments || 0);
 
-        await loadRecentActivity();
+        //await loadRecentActivity();
 
         console.log('✅ Dashboard carregado');
 
