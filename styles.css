@@ -1324,3 +1324,33 @@ button:disabled {
 .system-status {
     display: none !important;
 }
+
+#dashboard-pending-panel {
+    margin-top: 22px;
+}
+
+#dashboard-pending-table {
+    min-width: 850px;
+}
+
+#dashboard-pending-table th:nth-child(1),
+#dashboard-pending-table td:nth-child(1) {
+    width: 15%;
+}
+
+#dashboard-pending-table th:nth-child(2),
+#dashboard-pending-table td:nth-child(2) {
+    width: 50%;
+}
+
+#dashboard-pending-table th:nth-child(3),
+#dashboard-pending-table td:nth-child(3) {
+    width: 20%;
+    text-align: center;
+}
+
+#dashboard-pending-table th:nth-child(4),
+#dashboard-pending-table td:nth-child(4) {
+    width: 15%;
+    text-align: center;
+}
