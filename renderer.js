@@ -6056,63 +6056,56 @@ async function loadChecklistPanel() {
 
 async function showChecklistForm() {
     try {
-        const services = await window.electronAPI.getServices().catch(() => []);
-        if (!services || services.length === 0) {
-    showNotification('Cadastre uma OS/Serviço antes de criar um checklist.', 'warning');
-    showTab('services');
-    return;
-}
-
         const [services, clients] = await Promise.all([
-    window.electronAPI.getServices().catch(() => []),
-    window.electronAPI.getClients().catch(() => [])
-]);
+            window.electronAPI.getServices().catch(() => []),
+            window.electronAPI.getClients().catch(() => [])
+        ]);
 
-if (!services || services.length === 0) {
-    showNotification('Cadastre uma OS/Serviço antes de criar um checklist.', 'warning');
-    showTab('services');
-    return;
-}
+        if (!services || services.length === 0) {
+            showNotification('Cadastre uma OS/Serviço antes de criar um checklist.', 'warning');
+            showTab('services');
+            return;
+        }
 
-const serviceOptions = services.map(service => {
-    const clientId = service.client_id || '';
-    const client = clients.find(c => c.id === clientId);
+        const serviceOptions = services.map(service => {
+            const clientId = service.client_id || service.clientId || '';
+            const client = clients.find(c => c.id === clientId);
 
-    const clientName = client?.name || 'Cliente não identificado';
-    const phone = client?.phone ? ` - ${client.phone}` : '';
+            const clientName = client?.name || 'Cliente não identificado';
+            const phone = client?.phone ? ` - ${client.phone}` : '';
 
-    const osNumber =
-        service.service_number ||
-        service.serviceNumber ||
-        service.id?.substring(0, 8) ||
-        '';
+            const osNumber =
+                service.service_number ||
+                service.serviceNumber ||
+                service.id?.substring(0, 8) ||
+                '';
 
-    const equipment =
-        service.device_model ||
-        service.equipment ||
-        service.device ||
-        'Equipamento não informado';
+            const equipment =
+                service.device_model ||
+                service.equipment ||
+                service.device ||
+                'Equipamento não informado';
 
-    const status =
-        service.status === 'orcamento' ? 'Orçamento' :
-        service.status === 'em_andamento' ? 'Em andamento' :
-        service.status === 'aguardando_peca' ? 'Aguardando peça' :
-        service.status === 'finalizado' ? 'Finalizado' :
-        service.status === 'entregue' ? 'Entregue' :
-        service.status === 'cancelado' ? 'Cancelado' :
-        service.status || '';
+            const status =
+                service.status === 'orcamento' ? 'Orçamento' :
+                service.status === 'em_andamento' ? 'Em andamento' :
+                service.status === 'aguardando_peca' ? 'Aguardando peça' :
+                service.status === 'finalizado' ? 'Finalizado' :
+                service.status === 'entregue' ? 'Entregue' :
+                service.status === 'cancelado' ? 'Cancelado' :
+                service.status || '';
 
-    const label = `OS ${osNumber} | ${clientName}${phone} | ${equipment} | ${status}`;
+            const label = `OS ${osNumber} | ${clientName}${phone} | ${equipment} | ${status}`;
 
-    return `<option value="${service.id}">${escapeHtml(label)}</option>`;
-    }).join('');
+            return `<option value="${service.id}">${escapeHtml(label)}</option>`;
+        }).join('');
 
         const body = `
             <div class="form-row">
                 <div class="form-group">
                     <label>Serviço / OS</label>
                     <select id="modal-checklist-service" required>
-                        <option value="">Selecione um serviço...</option>
+                        <option value="">Selecione um serviço.</option>
                         ${serviceOptions}
                     </select>
                 </div>
@@ -6128,6 +6121,7 @@ const serviceOptions = services.map(service => {
 
             <div class="form-section">
                 <h4><i class="fas fa-mobile-alt"></i> Condição do aparelho</h4>
+
                 <label><input type="checkbox" class="modal-check-item" value="Liga normalmente"> Liga normalmente</label><br>
                 <label><input type="checkbox" class="modal-check-item" value="Tela sem trincos aparentes"> Tela sem trincos aparentes</label><br>
                 <label><input type="checkbox" class="modal-check-item" value="Touch funcionando"> Touch funcionando</label><br>
@@ -6142,12 +6136,12 @@ const serviceOptions = services.map(service => {
                 <label>Observações</label>
                 <textarea id="modal-checklist-observations" rows="4" placeholder="Descreva marcas, riscos, trincos, acessórios recebidos ou qualquer observação importante..."></textarea>
             </div>
-            
-                        <div class="form-group">
+
+            <div class="form-group">
                 <label>Fotos do aparelho</label>
                 <input type="file" id="modal-checklist-photos" accept="image/*" multiple>
-                <small style="color:#6c757d; margin-top:6px;">
-                    Você pode anexar fotos da frente, traseira, laterais, tela, conector e marcas do aparelho.
+                <small style="color:#2563eb; font-weight:600; display:block; margin-top:6px;">
+                    Anexe fotos da frente, traseira, laterais, tela, conector ou marcas do aparelho.
                 </small>
             </div>
 
@@ -6174,21 +6168,23 @@ const serviceOptions = services.map(service => {
                         }
 
                         const checkedItems = Array.from(document.querySelectorAll('.modal-check-item')).map(input => ({
-                                label: input.value,
-                                checked: input.checked
-                            }));
-                            
-                            const photosInput = document.getElementById('modal-checklist-photos');
-                            const photos = photosInput ? Array.from(photosInput.files || []) : [];
-                            
-                            const result = await window.electronAPI.saveChecklist({
-                                service_id: service_id,
-                                type,
-                                items: checkedItems,
-                                observations,
-                                technician_signature,
-                                photos
-                            });
+                            label: input.value,
+                            checked: input.checked
+                        }));
+
+                        const photosInput = document.getElementById('modal-checklist-photos');
+                        const photos = photosInput ? Array.from(photosInput.files || []) : [];
+
+                        console.log('📸 Fotos selecionadas no checklist:', photos.length);
+
+                        const result = await window.electronAPI.saveChecklist({
+                            service_id,
+                            type,
+                            items: checkedItems,
+                            observations,
+                            technician_signature,
+                            photos
+                        });
 
                         if (!result?.success) {
                             throw new Error(result?.error || 'Erro ao salvar checklist');
