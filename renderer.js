@@ -369,9 +369,9 @@ getCashStatus: async () => {
     saveChecklist: async (checklist) => {
     const formData = new FormData();
 
-    const service_id = checklist.service_id || '';
+    const serviceId = checklist.service_id || '';
 
-    formData.append('service_id', service_id);
+    formData.append('service_id', serviceId);
     formData.append('type', checklist.type || 'entrada');
     formData.append('items', JSON.stringify(checklist.items || []));
     formData.append('observations', checklist.observations || '');
@@ -385,8 +385,8 @@ getCashStatus: async () => {
         }
     });
 
-    console.log('📸 Enviando checklist:', {
-        service_id: service_id,
+    console.log('📸 Enviando checklist para API:', {
+        service_id: serviceId,
         type: checklist.type || 'entrada',
         totalPhotos: photos.length
     });
@@ -6063,10 +6063,49 @@ async function showChecklistForm() {
     return;
 }
 
-        const serviceOptions = services.map(service => {
-            const label = `${service.service_number || service.id?.substring(0, 8) || ''} - ${service.device_model || service.equipment || 'Equipamento'}`;
-            return `<option value="${service.id}">${escapeHtml(label)}</option>`;
-        }).join('');
+        const [services, clients] = await Promise.all([
+    window.electronAPI.getServices().catch(() => []),
+    window.electronAPI.getClients().catch(() => [])
+]);
+
+if (!services || services.length === 0) {
+    showNotification('Cadastre uma OS/Serviço antes de criar um checklist.', 'warning');
+    showTab('services');
+    return;
+}
+
+const serviceOptions = services.map(service => {
+    const clientId = service.client_id || '';
+    const client = clients.find(c => c.id === clientId);
+
+    const clientName = client?.name || 'Cliente não identificado';
+    const phone = client?.phone ? ` - ${client.phone}` : '';
+
+    const osNumber =
+        service.service_number ||
+        service.serviceNumber ||
+        service.id?.substring(0, 8) ||
+        '';
+
+    const equipment =
+        service.device_model ||
+        service.equipment ||
+        service.device ||
+        'Equipamento não informado';
+
+    const status =
+        service.status === 'orcamento' ? 'Orçamento' :
+        service.status === 'em_andamento' ? 'Em andamento' :
+        service.status === 'aguardando_peca' ? 'Aguardando peça' :
+        service.status === 'finalizado' ? 'Finalizado' :
+        service.status === 'entregue' ? 'Entregue' :
+        service.status === 'cancelado' ? 'Cancelado' :
+        service.status || '';
+
+    const label = `OS ${osNumber} | ${clientName}${phone} | ${equipment} | ${status}`;
+
+    return `<option value="${service.id}">${escapeHtml(label)}</option>`;
+    }).join('');
 
         const body = `
             <div class="form-row">
