@@ -1437,6 +1437,9 @@ function updateClock() {
     if (timeEl) timeEl.textContent = now.toLocaleTimeString('pt-BR');
     if (dateEl) dateEl.textContent = now.toLocaleDateString('pt-BR');
 }
+function updateSystemStatus() {
+    // Status fictício removido do painel.
+}
 
 function getServiceStatusName(status) {
     const s = { 
