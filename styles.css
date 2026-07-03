@@ -1286,3 +1286,41 @@ button:disabled {
         justify-content: center;
     }
 }
+
+/* ============ AJUSTE VISUAL SMART TECH ============ */
+
+/* Textos pequenos dos cards em azul */
+.stat-info h3,
+.table-container thead th,
+.section-header h2 i,
+.dashboard-header h2 i {
+    color: var(--primary) !important;
+}
+
+/* Ícones de contato no topo */
+.company-contact i.fa-phone-alt,
+.company-contact i.fa-building {
+    color: #ffffff;
+}
+
+/* WhatsApp verde */
+.company-contact i.fa-whatsapp,
+.footer i.fa-whatsapp,
+.footer a[href*="wa.me"] {
+    color: #25d366 !important;
+}
+
+/* Links do WhatsApp */
+.footer a[href*="wa.me"] {
+    font-weight: 700;
+}
+
+/* Remove visual de atividade recente caso ainda exista no HTML */
+.recent-activity {
+    display: none !important;
+}
+
+/* Remove bloco fictício de status se ainda existir */
+.system-status {
+    display: none !important;
+}
