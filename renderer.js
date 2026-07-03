@@ -6141,8 +6141,8 @@ async function showChecklistForm() {
                 <label>Fotos do aparelho</label>
                 <input type="file" id="modal-checklist-photos" accept="image/*" multiple>
                 <small style="color:#2563eb; font-weight:600; display:block; margin-top:6px;">
-                    Anexe fotos da frente, traseira, laterais, tela, conector ou marcas do aparelho.
-                </small>
+                    Você pode anexar até 10 fotos do aparelho.
+            </small>
             </div>
 
             <div class="form-group">
@@ -6172,10 +6172,15 @@ async function showChecklistForm() {
                             checked: input.checked
                         }));
 
-                        const photosInput = document.getElementById('modal-checklist-photos');
-                        const photos = photosInput ? Array.from(photosInput.files || []) : [];
+                       const photosInput = document.getElementById('modal-checklist-photos');
+                        let photos = photosInput ? Array.from(photosInput.files || []) : [];
+                        
+                        if (photos.length > 10) {
+                            showNotification('Selecione no máximo 10 fotos.', 'warning');
+                            photos = photos.slice(0, 10);
+                        }
 
-                        console.log('📸 Fotos selecionadas no checklist:', photos.length);
+                    console.log('📸 Fotos selecionadas no checklist:', photos.length);
 
                         const result = await window.electronAPI.saveChecklist({
                             service_id,
