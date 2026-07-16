@@ -2468,48 +2468,70 @@ async function loadSuppliers(search = '') {
         console.log('📋 Carregando fornecedores...');
         const suppliers = await getCachedData('suppliers', () => window.electronAPI.getSuppliers());
         console.log('✅ Fornecedores carregados:', suppliers.length);
-        
+
         const tbody = document.getElementById('suppliers-table-body');
         if (!tbody) {
             console.error('❌ Tbody de fornecedores não encontrado');
             return;
         }
-        
-        const filtered = search ? suppliers.filter(s => {
-            const term = search.toLowerCase();
-            return [
-                s.name,
-                s.contact,
-                s.phone,
-                s.email,
-                s.document,
-                s.category,
-                s.city
-            ].some(value => String(value || '').toLowerCase().includes(term));
-        }) : suppliers;
-        if (!filtered.length) { 
-            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Nenhum fornecedor cadastrado</td></tr>'; 
-            return; 
+
+        const searchText = normalizeSearchValue(search);
+        const searchDigits = onlyDigits(search);
+
+        const filtered = (!searchText && !searchDigits)
+            ? suppliers
+            : suppliers.filter((supplier) => {
+                const textFields = [
+                    supplier.name,
+                    supplier.contact,
+                    supplier.email,
+                    supplier.category,
+                    supplier.city,
+                    supplier.state,
+                    supplier.address,
+                    supplier.district,
+                    supplier.notes
+                ].map(normalizeSearchValue);
+
+                const digitFields = [
+                    supplier.phone,
+                    supplier.document,
+                    supplier.cpf_cnpj,
+                    supplier.cep
+                ].map(onlyDigits);
+
+                const matchesText = searchText && textFields.some((value) => value.includes(searchText));
+                const matchesDigits = searchDigits && digitFields.some((value) => value.includes(searchDigits));
+
+                return Boolean(matchesText || matchesDigits);
+            });
+
+        if (!filtered.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="no-data">${searchText || searchDigits ? 'Nenhum fornecedor encontrado para esta busca' : 'Nenhum fornecedor cadastrado'}</td></tr>`;
+            applyResponsiveTableLabels();
+            return;
         }
-        
-        tbody.innerHTML = filtered.map(s => {
-            return `
+
+        tbody.innerHTML = filtered.map((supplier) => `
             <tr>
-                <td>${escapeHtml(s.name || '-')}</td>
-                <td>${escapeHtml(s.contact || '-')}</td>
-                <td>${escapeHtml(s.phone || '-')}</td>
-                <td>${escapeHtml(s.email || '-')}</td>
-                <td>${escapeHtml(s.category || '-')}</td>
-                <td>${escapeHtml(s.city || '-')}</td>
+                <td>${escapeHtml(supplier.name || '-')}</td>
+                <td>${escapeHtml(supplier.contact || '-')}</td>
+                <td>${escapeHtml(supplier.phone || '-')}</td>
+                <td>${escapeHtml(supplier.email || '-')}</td>
+                <td>${escapeHtml(supplier.category || '-')}</td>
+                <td>${escapeHtml(supplier.city || '-')}</td>
                 <td class="actions">
-                    <button class="btn-view" onclick="viewSupplier('${s.id}')"><i class="fas fa-eye"></i></button>
-                    <button class="btn-edit" onclick="editSupplier('${s.id}')"><i class="fas fa-edit"></i></button>
-                    <button class="btn-delete" onclick="deleteSupplier('${s.id}')"><i class="fas fa-trash"></i></button>
+                    <button class="btn-view" onclick="viewSupplier('${supplier.id}')" title="Visualizar fornecedor"><i class="fas fa-eye"></i></button>
+                    <button class="btn-edit" onclick="editSupplier('${supplier.id}')" title="Editar fornecedor"><i class="fas fa-edit"></i></button>
+                    <button class="btn-delete" onclick="deleteSupplier('${supplier.id}')" title="Excluir fornecedor"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
-        `}).join('');
-    } catch (error) { 
-        console.error('❌ Erro ao carregar fornecedores:', error); 
+        `).join('');
+
+        applyResponsiveTableLabels();
+    } catch (error) {
+        console.error('❌ Erro ao carregar fornecedores:', error);
+        showNotification('Erro ao carregar fornecedores', 'error');
     }
 }
 
@@ -2738,28 +2760,54 @@ async function loadParts(search = '') {
         const tbody = document.getElementById('parts-table-body');
         if (!tbody) return;
 
-        const term = (search || '').toLowerCase();
+        const searchText = normalizeSearchValue(search);
+        const searchDigits = onlyDigits(search);
 
-        const filtered = term
-            ? parts.filter(p =>
-                (p.name || '').toLowerCase().includes(term) ||
-                (p.code || '').toLowerCase().includes(term)
-            )
-            : parts;
+        const filtered = (!searchText && !searchDigits)
+            ? parts
+            : parts.filter((part) => {
+                const supplier = suppliers.find((item) => String(item.id) === String(part.supplier_id));
+
+                const textFields = [
+                    part.name,
+                    part.code,
+                    part.category,
+                    part.description,
+                    part.brand,
+                    part.model,
+                    part.location,
+                    supplier?.name
+                ].map(normalizeSearchValue);
+
+                const digitFields = [
+                    part.code,
+                    part.barcode,
+                    part.quantity,
+                    part.min_stock,
+                    part.cost_price,
+                    part.sale_price
+                ].map(onlyDigits);
+
+                const matchesText = searchText && textFields.some((value) => value.includes(searchText));
+                const matchesDigits = searchDigits && digitFields.some((value) => value.includes(searchDigits));
+
+                return Boolean(matchesText || matchesDigits);
+            });
 
         if (!filtered.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="no-data">Nenhuma peça cadastrada</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="8" class="no-data">${searchText || searchDigits ? 'Nenhuma peça encontrada para esta busca' : 'Nenhuma peça cadastrada'}</td></tr>`;
+            applyResponsiveTableLabels();
             return;
         }
 
-        tbody.innerHTML = filtered.map(p => {
-            const supplier = suppliers.find(s => s.id === p.supplier_id);
+        tbody.innerHTML = filtered.map((part) => {
+            const supplier = suppliers.find((item) => String(item.id) === String(part.supplier_id));
             const supplierName = supplier ? supplier.name : '-';
 
-            const quantity = Number(p.quantity) || 0;
-            const minStock = Number(p.min_stock) || 0;
-            const costPrice = Number(p.cost_price) || 0;
-            const salePrice = Number(p.sale_price) || 0;
+            const quantity = Number(part.quantity) || 0;
+            const minStock = Number(part.min_stock) || 0;
+            const costPrice = Number(part.cost_price) || 0;
+            const salePrice = Number(part.sale_price) || 0;
 
             const stockAlert = quantity <= minStock && minStock > 0
                 ? ' <span class="badge badge-warning">Baixo</span>'
@@ -2767,18 +2815,18 @@ async function loadParts(search = '') {
 
             return `
                 <tr>
-                    <td style="max-width:200px;">${escapeHtml(p.name || '-')}</td>
-                    <td>${escapeHtml(p.code || '-')}</td>
-                    <td>-</td>
+                    <td>${escapeHtml(part.name || '-')}</td>
+                    <td>${escapeHtml(part.code || '-')}</td>
+                    <td>${escapeHtml(part.category || '-')}</td>
                     <td>${escapeHtml(supplierName)}</td>
                     <td class="text-center">${quantity}${stockAlert}</td>
-                    <td class="text-center">R$ ${costPrice.toFixed(2)}</td>
-                    <td class="text-center">R$ ${salePrice.toFixed(2)}</td>
+                    <td class="text-right">R$ ${costPrice.toFixed(2)}</td>
+                    <td class="text-right">R$ ${salePrice.toFixed(2)}</td>
                     <td class="actions">
-                        <button class="btn-edit" onclick="editPart('${p.id}')" title="Editar peça">
+                        <button class="btn-edit" onclick="editPart('${part.id}')" title="Editar peça">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-delete" onclick="deletePart('${p.id}')" title="Excluir peça">
+                        <button class="btn-delete" onclick="deletePart('${part.id}')" title="Excluir peça">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -2786,6 +2834,7 @@ async function loadParts(search = '') {
             `;
         }).join('');
 
+        applyResponsiveTableLabels();
     } catch (error) {
         console.error('Erro ao carregar peças:', error);
         showNotification('Erro ao carregar peças', 'error');
