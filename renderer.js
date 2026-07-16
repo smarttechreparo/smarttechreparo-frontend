@@ -1626,10 +1626,19 @@ function setupEventListeners() {
     
     searchConfigs.forEach(config => {
         const el = document.getElementById(config.id);
-        if (el) {
-            el.removeEventListener('input', (e) => config.handler(e.target.value));
-            el.addEventListener('input', (e) => config.handler(e.target.value));
-        }
+        if (!el) return;
+
+        let searchTimer;
+        el.addEventListener('input', (e) => {
+            clearTimeout(searchTimer);
+            const value = e.target.value || '';
+            searchTimer = setTimeout(() => config.handler(value), 180);
+        });
+
+        el.addEventListener('search', (e) => {
+            clearTimeout(searchTimer);
+            config.handler(e.target.value || '');
+        });
     });
 
     const cepInput = document.getElementById('client-cep');
@@ -2107,21 +2116,55 @@ function updateInterestDisplay() {
     }
 }
 
+function normalizeSearchValue(value) {
+    return String(value ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+}
+
+function onlyDigits(value) {
+    return String(value ?? '').replace(/\D/g, '');
+}
+
 // ============ CLIENTES ==========
 async function loadClients(search = '') {
     try {
         const clients = await getCachedData('clients', () => window.electronAPI.getClients());
         const tbody = document.querySelector('#clients-table tbody');
         if (!tbody) return;
-        const filtered = search ? clients.filter(c => 
-            c.name?.toLowerCase().includes(search.toLowerCase()) ||
-            c.phone?.includes(search) ||
-            c.email?.toLowerCase().includes(search.toLowerCase()) ||
-            c.document?.includes(search.replace(/\D/g, ''))
-        ) : clients;
+
+        const searchText = normalizeSearchValue(search);
+        const searchDigits = onlyDigits(search);
+
+        const filtered = !searchText && !searchDigits
+            ? clients
+            : clients.filter((client) => {
+                const textFields = [
+                    client.name,
+                    client.email,
+                    client.city,
+                    client.state,
+                    client.address,
+                    client.district
+                ].map(normalizeSearchValue);
+
+                const digitFields = [
+                    client.phone,
+                    client.document,
+                    client.cep
+                ].map(onlyDigits);
+
+                const matchesText = searchText && textFields.some(value => value.includes(searchText));
+                const matchesDigits = searchDigits && digitFields.some(value => value.includes(searchDigits));
+
+                return matchesText || matchesDigits;
+            });
         
         if (!filtered.length) { 
-            tbody.innerHTML = '<tr><td colspan="6" class="no-data">Nenhum cliente cadastrado</td></tr>'; 
+            tbody.innerHTML = `<tr><td colspan="6" class="no-data">${searchText || searchDigits ? 'Nenhum cliente encontrado para esta busca' : 'Nenhum cliente cadastrado'}</td></tr>`; 
+            applyResponsiveTableLabels?.();
             return; 
         }
         
@@ -2130,7 +2173,7 @@ async function loadClients(search = '') {
             let docType = '';
             
             if (c.document) {
-                const docNumbers = c.document.replace(/\D/g, '');
+                const docNumbers = onlyDigits(c.document);
                 
                 if (docNumbers.length === 11) {
                     docFormatted = docNumbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
@@ -2173,8 +2216,10 @@ async function loadClients(search = '') {
             </tr>
             `;
         }).join('');
-    } catch (error) { 
-        console.error('Erro ao carregar clientes:', error); 
+
+        applyResponsiveTableLabels?.();
+    } catch (error) {
+        console.error('Erro ao carregar clientes:', error);
         showNotification('Erro ao carregar clientes', 'error');
     }
 }
