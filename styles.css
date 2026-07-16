@@ -1688,3 +1688,154 @@ input, select, textarea, button { max-width: 100%; }
     .time-display { display: none; }
     .table-container tbody td { grid-template-columns: 1fr; text-align: left !important; }
 }
+
+/* =========================================================
+   CORREÇÃO DE ALINHAMENTO E LARGURAS DAS TABELAS
+   Mantém cabeçalho e conteúdo na mesma grade em todas as telas.
+   ========================================================= */
+@media (min-width: 681px) {
+    .table-container table {
+        table-layout: fixed;
+    }
+
+    .table-container thead th,
+    .table-container tbody td {
+        box-sizing: border-box;
+        text-align: left;
+    }
+
+    .table-container thead th {
+        vertical-align: middle;
+    }
+
+    .table-container tbody td {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .table-container th:last-child,
+    .table-container td:last-child {
+        width: 126px;
+        min-width: 126px;
+        max-width: 126px;
+        text-align: center;
+    }
+
+    /* Clientes */
+    #clients-table th:nth-child(1), #clients-table td:nth-child(1) { width: 25%; }
+    #clients-table th:nth-child(2), #clients-table td:nth-child(2) { width: 16%; }
+    #clients-table th:nth-child(3), #clients-table td:nth-child(3) { width: 23%; }
+    #clients-table th:nth-child(4), #clients-table td:nth-child(4) { width: 12%; }
+    #clients-table th:nth-child(5), #clients-table td:nth-child(5) { width: 12%; }
+
+    /* Fornecedores */
+    #suppliers-table th:nth-child(1), #suppliers-table td:nth-child(1) { width: 19%; }
+    #suppliers-table th:nth-child(2), #suppliers-table td:nth-child(2) { width: 14%; }
+    #suppliers-table th:nth-child(3), #suppliers-table td:nth-child(3) { width: 14%; }
+    #suppliers-table th:nth-child(4), #suppliers-table td:nth-child(4) { width: 20%; }
+    #suppliers-table th:nth-child(5), #suppliers-table td:nth-child(5) { width: 13%; }
+    #suppliers-table th:nth-child(6), #suppliers-table td:nth-child(6) { width: 10%; }
+
+    /* Peças */
+    #parts-table th:nth-child(1), #parts-table td:nth-child(1) { width: 18%; }
+    #parts-table th:nth-child(2), #parts-table td:nth-child(2) { width: 11%; }
+    #parts-table th:nth-child(3), #parts-table td:nth-child(3) { width: 12%; }
+    #parts-table th:nth-child(4), #parts-table td:nth-child(4) { width: 15%; }
+    #parts-table th:nth-child(5), #parts-table td:nth-child(5) { width: 9%; text-align: center; }
+    #parts-table th:nth-child(6), #parts-table td:nth-child(6),
+    #parts-table th:nth-child(7), #parts-table td:nth-child(7) { width: 11%; text-align: right; }
+
+    /* Estoque */
+    #stock-table th:nth-child(1), #stock-table td:nth-child(1) { width: 24%; }
+    #stock-table th:nth-child(2), #stock-table td:nth-child(2) { width: 16%; }
+    #stock-table th:nth-child(3), #stock-table td:nth-child(3) { width: 19%; }
+    #stock-table th:nth-child(4), #stock-table td:nth-child(4) { width: 12%; text-align: center; }
+    #stock-table th:nth-child(5), #stock-table td:nth-child(5) { width: 18%; }
+    #stock-table th:nth-child(6), #stock-table td:nth-child(6) { width: 11%; text-align: center; }
+
+    /* Itens de venda e serviço */
+    #sale-items-table th:nth-child(1), #sale-items-table td:nth-child(1),
+    #service-parts-table th:nth-child(1), #service-parts-table td:nth-child(1) { width: 38%; }
+    #sale-items-table th:nth-child(2), #sale-items-table td:nth-child(2),
+    #service-parts-table th:nth-child(2), #service-parts-table td:nth-child(2) { width: 14%; text-align: center; }
+    #sale-items-table th:nth-child(3), #sale-items-table td:nth-child(3),
+    #service-parts-table th:nth-child(3), #service-parts-table td:nth-child(3),
+    #sale-items-table th:nth-child(4), #sale-items-table td:nth-child(4),
+    #service-parts-table th:nth-child(4), #service-parts-table td:nth-child(4) { width: 18%; text-align: right; }
+
+    /* Histórico de vendas */
+    #sales-history-table th:nth-child(1), #sales-history-table td:nth-child(1) { width: 9%; }
+    #sales-history-table th:nth-child(2), #sales-history-table td:nth-child(2) { width: 11%; }
+    #sales-history-table th:nth-child(3), #sales-history-table td:nth-child(3) { width: 17%; }
+    #sales-history-table th:nth-child(4), #sales-history-table td:nth-child(4) { width: 17%; }
+    #sales-history-table th:nth-child(5), #sales-history-table td:nth-child(5) { width: 10%; text-align: right; }
+    #sales-history-table th:nth-child(6), #sales-history-table td:nth-child(6) { width: 13%; }
+    #sales-history-table th:nth-child(7), #sales-history-table td:nth-child(7) { width: 10%; text-align: center; }
+
+    /* Serviços */
+    #services-table th:nth-child(1), #services-table td:nth-child(1) { width: 11%; }
+    #services-table th:nth-child(2), #services-table td:nth-child(2) { width: 17%; }
+    #services-table th:nth-child(3), #services-table td:nth-child(3) { width: 18%; }
+    #services-table th:nth-child(4), #services-table td:nth-child(4) { width: 24%; }
+    #services-table th:nth-child(5), #services-table td:nth-child(5) { width: 10%; text-align: right; }
+    #services-table th:nth-child(6), #services-table td:nth-child(6) { width: 10%; text-align: center; }
+
+    /* Compras */
+    #purchases-table th:nth-child(1), #purchases-table td:nth-child(1) { width: 11%; }
+    #purchases-table th:nth-child(2), #purchases-table td:nth-child(2) { width: 12%; }
+    #purchases-table th:nth-child(3), #purchases-table td:nth-child(3) { width: 25%; }
+    #purchases-table th:nth-child(4), #purchases-table td:nth-child(4) { width: 11%; text-align: center; }
+    #purchases-table th:nth-child(5), #purchases-table td:nth-child(5) { width: 13%; text-align: right; }
+    #purchases-table th:nth-child(6), #purchases-table td:nth-child(6) { width: 12%; text-align: center; }
+
+    /* Despesas */
+    #expenses-table th:nth-child(1), #expenses-table td:nth-child(1) { width: 12%; }
+    #expenses-table th:nth-child(2), #expenses-table td:nth-child(2) { width: 15%; }
+    #expenses-table th:nth-child(3), #expenses-table td:nth-child(3) { width: 28%; }
+    #expenses-table th:nth-child(4), #expenses-table td:nth-child(4) { width: 12%; text-align: right; }
+    #expenses-table th:nth-child(5), #expenses-table td:nth-child(5) { width: 12%; }
+    #expenses-table th:nth-child(6), #expenses-table td:nth-child(6) { width: 11%; text-align: center; }
+
+    /* Checklist */
+    #checklists-table th:nth-child(1), #checklists-table td:nth-child(1) { width: 18%; }
+    #checklists-table th:nth-child(2), #checklists-table td:nth-child(2) { width: 17%; }
+    #checklists-table th:nth-child(3), #checklists-table td:nth-child(3) { width: 35%; }
+    #checklists-table th:nth-child(4), #checklists-table td:nth-child(4) { width: 16%; }
+
+    /* Caixa */
+    #cash-table th:nth-child(1), #cash-table td:nth-child(1) { width: 14%; }
+    #cash-table th:nth-child(2), #cash-table td:nth-child(2) { width: 12%; }
+    #cash-table th:nth-child(3), #cash-table td:nth-child(3) { width: 30%; }
+    #cash-table th:nth-child(4), #cash-table td:nth-child(4) { width: 16%; }
+    #cash-table th:nth-child(5), #cash-table td:nth-child(5) { width: 14%; text-align: right; }
+
+    /* Itens da compra */
+    #purchase-items-table th:nth-child(1), #purchase-items-table td:nth-child(1) { width: 29%; }
+    #purchase-items-table th:nth-child(2), #purchase-items-table td:nth-child(2) { width: 12%; }
+    #purchase-items-table th:nth-child(3), #purchase-items-table td:nth-child(3) { width: 10%; text-align: center; }
+    #purchase-items-table th:nth-child(4), #purchase-items-table td:nth-child(4),
+    #purchase-items-table th:nth-child(5), #purchase-items-table td:nth-child(5),
+    #purchase-items-table th:nth-child(6), #purchase-items-table td:nth-child(6) { width: 13%; text-align: right; }
+
+    /* Pendências do dashboard */
+    #dashboard-pending-table th:nth-child(1), #dashboard-pending-table td:nth-child(1) { width: 18%; }
+    #dashboard-pending-table th:nth-child(2), #dashboard-pending-table td:nth-child(2) { width: 48%; }
+    #dashboard-pending-table th:nth-child(3), #dashboard-pending-table td:nth-child(3) { width: 18%; text-align: center; }
+}
+
+/* Em tablets, preserva a grade da tabela e libera rolagem apenas quando necessário. */
+@media (min-width: 681px) and (max-width: 1100px) {
+    .table-container table {
+        table-layout: fixed;
+    }
+
+    .table-container thead th,
+    .table-container tbody td {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+.cell-primary { font-weight: 600; }
+.cell-secondary { margin-top: 3px; font-size: 11px; color: #6c757d; }
