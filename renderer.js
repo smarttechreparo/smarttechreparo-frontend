@@ -2158,8 +2158,8 @@ async function loadClients(search = '') {
             return `
             <tr>
                 <td>
-                    <div style="font-weight: 500;">${name}</div>
-                    ${docFormatted !== '-' ? `<div style="font-size: 11px; color: #6c757d;">${docType}: ${escapeHtml(docFormatted)}</div>` : ''}
+                    <div class="cell-primary">${name}</div>
+                    ${docFormatted !== '-' ? `<div class="cell-secondary">${docType}: ${escapeHtml(docFormatted)}</div>` : ''}
                 </td>
                 <td>${phone}</td>
                 <td>${email}</td>
