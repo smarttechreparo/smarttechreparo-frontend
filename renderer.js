@@ -6669,3 +6669,59 @@ window.saveExpenseFromModal = saveExpenseFromModal;
 console.log('🚀 Sistema Smart Tech Reparo inicializado!');
 console.log('✅ renderer.js carregado completamente!');
 console.log('💳 Cartão de crédito = PAGO | 📄 Boleto = PENDENTE');
+
+
+// =========================================================
+// RESPONSIVIDADE: MENU MOBILE + RÓTULOS DE TABELAS
+// =========================================================
+(function setupResponsiveLayout() {
+    function closeMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const toggle = document.getElementById('mobile-menu-toggle');
+        sidebar?.classList.remove('open');
+        overlay?.classList.remove('visible');
+        document.body.classList.remove('menu-open');
+        toggle?.setAttribute('aria-expanded', 'false');
+    }
+
+    function openMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const toggle = document.getElementById('mobile-menu-toggle');
+        sidebar?.classList.add('open');
+        overlay?.classList.add('visible');
+        document.body.classList.add('menu-open');
+        toggle?.setAttribute('aria-expanded', 'true');
+    }
+
+    function labelTableCells(root = document) {
+        root.querySelectorAll('.table-container table').forEach((table) => {
+            const headers = Array.from(table.querySelectorAll('thead th')).map((th) => th.textContent.trim());
+            table.querySelectorAll('tbody tr').forEach((row) => {
+                Array.from(row.children).forEach((cell, index) => {
+                    if (cell.tagName !== 'TD' || cell.hasAttribute('colspan')) return;
+                    const label = headers[index] || '';
+                    if (label) cell.dataset.label = label;
+                });
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggle = document.getElementById('mobile-menu-toggle');
+        const overlay = document.getElementById('sidebar-overlay');
+        toggle?.addEventListener('click', () => {
+            document.getElementById('sidebar')?.classList.contains('open') ? closeMobileMenu() : openMobileMenu();
+        });
+        overlay?.addEventListener('click', closeMobileMenu);
+        document.querySelectorAll('.sidebar .tab-button').forEach((button) => button.addEventListener('click', closeMobileMenu));
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMobileMenu(); });
+        window.addEventListener('resize', () => { if (window.innerWidth > 900) closeMobileMenu(); });
+        labelTableCells();
+        const observer = new MutationObserver((mutations) => {
+            if (mutations.some((mutation) => mutation.type === 'childList')) labelTableCells();
+        });
+        observer.observe(document.querySelector('main') || document.body, { childList: true, subtree: true });
+    });
+})();
