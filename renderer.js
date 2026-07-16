@@ -2128,6 +2128,31 @@ function onlyDigits(value) {
     return String(value ?? '').replace(/\D/g, '');
 }
 
+
+/**
+ * Aplica os títulos das colunas como rótulos nas células.
+ * Usado pelo layout mobile, onde cada linha da tabela vira um card.
+ */
+function applyResponsiveTableLabels(root = document) {
+    root.querySelectorAll('.table-container table').forEach((table) => {
+        const headers = Array.from(table.querySelectorAll('thead th'))
+            .map((th) => th.textContent.trim());
+
+        table.querySelectorAll('tbody tr').forEach((row) => {
+            Array.from(row.children).forEach((cell, index) => {
+                if (cell.tagName !== 'TD' || cell.hasAttribute('colspan')) return;
+
+                const label = headers[index] || '';
+                if (label) {
+                    cell.dataset.label = label;
+                } else {
+                    delete cell.dataset.label;
+                }
+            });
+        });
+    });
+}
+
 // ============ CLIENTES ==========
 async function loadClients(search = '') {
     try {
@@ -6741,16 +6766,7 @@ console.log('💳 Cartão de crédito = PAGO | 📄 Boleto = PENDENTE');
     }
 
     function labelTableCells(root = document) {
-        root.querySelectorAll('.table-container table').forEach((table) => {
-            const headers = Array.from(table.querySelectorAll('thead th')).map((th) => th.textContent.trim());
-            table.querySelectorAll('tbody tr').forEach((row) => {
-                Array.from(row.children).forEach((cell, index) => {
-                    if (cell.tagName !== 'TD' || cell.hasAttribute('colspan')) return;
-                    const label = headers[index] || '';
-                    if (label) cell.dataset.label = label;
-                });
-            });
-        });
+        applyResponsiveTableLabels(root);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
