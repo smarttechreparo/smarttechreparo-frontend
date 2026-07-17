@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>styles.css V6</title><style>body{font-family:Arial,sans-serif;margin:0;background:#111827;color:#e5e7eb}header{position:sticky;top:0;background:#1f2937;padding:14px 20px;font-weight:700}pre{white-space:pre-wrap;word-break:break-word;margin:0;padding:20px;line-height:1.45;font-size:13px}</style></head><body><header>Copie todo o conteúdo e salve como styles.css</header><pre>/* =========================================================
+/* =========================================================
    SMART TECH REPARO - CSS LIMPO COM SIDEBAR
    Layout web administrativo, mantendo azul/branco da marca
 ========================================================= */
@@ -60,7 +60,7 @@ html {
 }
 
 body {
-    font-family: &#x27;Segoe UI&#x27;, -apple-system, BlinkMacSystemFont, &#x27;Helvetica Neue&#x27;, Arial, sans-serif;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
     background: var(--page-bg);
     color: var(--gray-800);
     min-height: 100vh;
@@ -628,7 +628,7 @@ button:disabled {
     color: var(--gray-900);
 }
 
-.table-container &gt; .header-actions {
+.table-container > .header-actions {
     padding: 12px 20px;
     border-bottom: 1px solid var(--gray-200);
     background: var(--white);
@@ -1211,7 +1211,7 @@ button:disabled {
     }
 
     .table-container::after {
-        content: &quot;Arraste para o lado para ver mais →&quot;;
+        content: "Arraste para o lado para ver mais →";
         display: block;
         padding: 9px 14px;
         font-size: 12px;
@@ -1306,12 +1306,12 @@ button:disabled {
 /* WhatsApp verde */
 .company-contact i.fa-whatsapp,
 .footer i.fa-whatsapp,
-.footer a[href*=&quot;wa.me&quot;] {
+.footer a[href*="wa.me"] {
     color: #25d366 !important;
 }
 
 /* Links do WhatsApp */
-.footer a[href*=&quot;wa.me&quot;] {
+.footer a[href*="wa.me"] {
     font-weight: 700;
 }
 
@@ -1414,11 +1414,11 @@ button:disabled {
 
 /* WhatsApp verde */
 .footer .fa-whatsapp,
-.footer a[href*=&quot;wa.me&quot;],
+.footer a[href*="wa.me"],
 .app-footer .fa-whatsapp,
-.app-footer a[href*=&quot;wa.me&quot;],
+.app-footer a[href*="wa.me"],
 .system-footer .fa-whatsapp,
-.system-footer a[href*=&quot;wa.me&quot;] {
+.system-footer a[href*="wa.me"] {
     color: #22c55e !important;
     font-weight: 700;
 }
@@ -1558,7 +1558,7 @@ input, select, textarea, button { max-width: 100%; }
     .header { height: var(--header-height); padding: 10px 14px; }
     .logo { min-width: 0; gap: 10px; }
     .logo h1 { font-size: 18px; white-space: nowrap; }
-    .logo &gt; i { font-size: 24px; }
+    .logo > i { font-size: 24px; }
     .mobile-menu-toggle {
         display: inline-flex;
         width: 42px; height: 42px;
@@ -1608,7 +1608,7 @@ input, select, textarea, button { max-width: 100%; }
     .table-container::after { content: none !important; }
     .section-header { flex-direction: column; gap: 12px; }
     .header-actions { width: 100%; justify-content: stretch; }
-    .header-actions &gt; button { flex: 1 1 180px; }
+    .header-actions > button { flex: 1 1 180px; }
     .header-actions .search-box { flex: 2 1 260px; width: auto; }
     .modal-content { width: calc(100% - 24px) !important; max-width: calc(100% - 24px) !important; max-height: calc(100dvh - 24px) !important; margin: 12px; }
 }
@@ -1617,7 +1617,7 @@ input, select, textarea, button { max-width: 100%; }
     :root { --header-height: 58px; }
     .header { height: var(--header-height); padding: 8px 10px; }
     .logo h1 { font-size: 16px; }
-    .logo &gt; i { display: none; }
+    .logo > i { display: none; }
     .mobile-menu-toggle { width: 40px; height: 40px; }
     .time-display div:last-child { display: none; }
     .content { padding: 12px 10px !important; }
@@ -1629,11 +1629,11 @@ input, select, textarea, button { max-width: 100%; }
     .form-actions, .modal-footer { display: grid !important; grid-template-columns: 1fr; gap: 10px; }
     .form-actions button, .modal-footer button { width: 100% !important; }
     .header-actions { display: grid !important; grid-template-columns: 1fr; }
-    .header-actions &gt; *, .header-actions .search-box { width: 100% !important; }
+    .header-actions > *, .header-actions .search-box { width: 100% !important; }
 
     /* Tabelas tornam-se cartões no celular */
     .table-container { overflow: visible; background: transparent; box-shadow: none; padding: 0; }
-    .table-container h3, .table-container h4, .table-container &gt; .header-actions { padding-left: 0; padding-right: 0; }
+    .table-container h3, .table-container h4, .table-container > .header-actions { padding-left: 0; padding-right: 0; }
     .table-container table,
     .table-container thead,
     .table-container tbody,
@@ -1674,8 +1674,8 @@ input, select, textarea, button { max-width: 100%; }
     .table-container tbody td[colspan]::before { content: none; }
     .table-container tbody td .actions,
     .table-container tbody td.actions { justify-content: flex-end; width: 100%; }
-    .table-container tbody td[data-label=&quot;Ações&quot;] { grid-template-columns: 1fr; }
-    .table-container tbody td[data-label=&quot;Ações&quot;]::before { margin-bottom: 4px; }
+    .table-container tbody td[data-label="Ações"] { grid-template-columns: 1fr; }
+    .table-container tbody td[data-label="Ações"]::before { margin-bottom: 4px; }
 
     .payment-options, .payment-mode-buttons { display: grid !important; grid-template-columns: 1fr; }
     .summary-row { gap: 12px; align-items: flex-start; }
@@ -1895,8 +1895,8 @@ input, select, textarea, button { max-width: 100%; }
         min-width: 0 !important;
     }
 
-    #suppliers-table .actions &gt; *,
-    #services-table .actions &gt; * {
+    #suppliers-table .actions > *,
+    #services-table .actions > * {
         margin: 0 !important;
     }
 
@@ -1912,4 +1912,141 @@ input, select, textarea, button { max-width: 100%; }
         vertical-align: middle !important;
     }
 }
-</pre></body></html>
+
+/* =========================================================
+   V7 - CORREÇÃO DE MARGENS EXTERNAS E CORES DO RODAPÉ
+   ========================================================= */
+
+/* Remove qualquer margem/faixa branca ao redor do sistema */
+html,
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    background: var(--page-bg) !important;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+body {
+    min-height: 100vh !important;
+}
+
+.container,
+.app-shell,
+.app-main {
+    margin: 0 !important;
+    border: 0 !important;
+    max-width: none !important;
+}
+
+.container,
+.app-shell {
+    width: 100% !important;
+}
+
+.header {
+    width: 100% !important;
+    margin: 0 !important;
+    border: 0 !important;
+}
+
+/* Rodapé: toda escrita preta */
+.footer,
+.footer span,
+.footer a,
+.footer small,
+.footer .footer-brand,
+.footer .footer-cnpj,
+.footer .footer-phone,
+.footer .footer-whatsapp,
+.footer #memory-footer,
+.footer #storage-usage,
+.app-footer,
+.app-footer span,
+.app-footer a,
+.system-footer,
+.system-footer span,
+.system-footer a {
+    color: #111827 !important;
+    text-decoration: none !important;
+}
+
+/* Smart Tech: ícone azul, texto preto */
+.footer .footer-brand i,
+.app-footer .footer-brand i,
+.system-footer .footer-brand i {
+    color: #2563eb !important;
+}
+
+/* CNPJ: ícone azul, texto preto */
+.footer .footer-cnpj i,
+.app-footer .footer-cnpj i,
+.system-footer .footer-cnpj i {
+    color: #2563eb !important;
+}
+
+/* Telefone: ícone vermelho, texto preto */
+.footer .footer-phone i,
+.app-footer .footer-phone i,
+.system-footer .footer-phone i {
+    color: #ef4444 !important;
+}
+
+/* WhatsApp: ícone verde, escrita preta */
+.footer .footer-whatsapp i,
+.app-footer .footer-whatsapp i,
+.system-footer .footer-whatsapp i,
+.footer .fa-whatsapp,
+.app-footer .fa-whatsapp,
+.system-footer .fa-whatsapp {
+    color: #16a34a !important;
+}
+
+.footer .footer-whatsapp a,
+.app-footer .footer-whatsapp a,
+.system-footer .footer-whatsapp a {
+    color: #111827 !important;
+}
+
+/* Online Cloud: ícone verde, texto preto */
+.footer #memory-footer,
+.app-footer #memory-footer,
+.system-footer #memory-footer {
+    color: #111827 !important;
+}
+
+.footer #memory-footer i,
+.app-footer #memory-footer i,
+.system-footer #memory-footer i {
+    color: #16a34a !important;
+}
+
+/* Railway API: ícone laranja, texto preto */
+.footer #storage-usage,
+.app-footer #storage-usage,
+.system-footer #storage-usage {
+    color: #111827 !important;
+}
+
+.footer #storage-usage i,
+.app-footer #storage-usage i,
+.system-footer #storage-usage i {
+    color: #f59e0b !important;
+}
+
+/* Mantém os itens alinhados e sem mudança de cor ao passar o mouse */
+.footer-info > span,
+.system-info > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.footer a:hover,
+.app-footer a:hover,
+.system-footer a:hover {
+    color: #111827 !important;
+    text-decoration: underline !important;
+}
