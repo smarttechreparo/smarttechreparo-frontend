@@ -1,4 +1,4 @@
-/* =========================================================
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>styles.css V6</title><style>body{font-family:Arial,sans-serif;margin:0;background:#111827;color:#e5e7eb}header{position:sticky;top:0;background:#1f2937;padding:14px 20px;font-weight:700}pre{white-space:pre-wrap;word-break:break-word;margin:0;padding:20px;line-height:1.45;font-size:13px}</style></head><body><header>Copie todo o conteúdo e salve como styles.css</header><pre>/* =========================================================
    SMART TECH REPARO - CSS LIMPO COM SIDEBAR
    Layout web administrativo, mantendo azul/branco da marca
 ========================================================= */
@@ -60,7 +60,7 @@ html {
 }
 
 body {
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-family: &#x27;Segoe UI&#x27;, -apple-system, BlinkMacSystemFont, &#x27;Helvetica Neue&#x27;, Arial, sans-serif;
     background: var(--page-bg);
     color: var(--gray-800);
     min-height: 100vh;
@@ -628,7 +628,7 @@ button:disabled {
     color: var(--gray-900);
 }
 
-.table-container > .header-actions {
+.table-container &gt; .header-actions {
     padding: 12px 20px;
     border-bottom: 1px solid var(--gray-200);
     background: var(--white);
@@ -1211,7 +1211,7 @@ button:disabled {
     }
 
     .table-container::after {
-        content: "Arraste para o lado para ver mais →";
+        content: &quot;Arraste para o lado para ver mais →&quot;;
         display: block;
         padding: 9px 14px;
         font-size: 12px;
@@ -1306,12 +1306,12 @@ button:disabled {
 /* WhatsApp verde */
 .company-contact i.fa-whatsapp,
 .footer i.fa-whatsapp,
-.footer a[href*="wa.me"] {
+.footer a[href*=&quot;wa.me&quot;] {
     color: #25d366 !important;
 }
 
 /* Links do WhatsApp */
-.footer a[href*="wa.me"] {
+.footer a[href*=&quot;wa.me&quot;] {
     font-weight: 700;
 }
 
@@ -1414,11 +1414,11 @@ button:disabled {
 
 /* WhatsApp verde */
 .footer .fa-whatsapp,
-.footer a[href*="wa.me"],
+.footer a[href*=&quot;wa.me&quot;],
 .app-footer .fa-whatsapp,
-.app-footer a[href*="wa.me"],
+.app-footer a[href*=&quot;wa.me&quot;],
 .system-footer .fa-whatsapp,
-.system-footer a[href*="wa.me"] {
+.system-footer a[href*=&quot;wa.me&quot;] {
     color: #22c55e !important;
     font-weight: 700;
 }
@@ -1558,7 +1558,7 @@ input, select, textarea, button { max-width: 100%; }
     .header { height: var(--header-height); padding: 10px 14px; }
     .logo { min-width: 0; gap: 10px; }
     .logo h1 { font-size: 18px; white-space: nowrap; }
-    .logo > i { font-size: 24px; }
+    .logo &gt; i { font-size: 24px; }
     .mobile-menu-toggle {
         display: inline-flex;
         width: 42px; height: 42px;
@@ -1608,7 +1608,7 @@ input, select, textarea, button { max-width: 100%; }
     .table-container::after { content: none !important; }
     .section-header { flex-direction: column; gap: 12px; }
     .header-actions { width: 100%; justify-content: stretch; }
-    .header-actions > button { flex: 1 1 180px; }
+    .header-actions &gt; button { flex: 1 1 180px; }
     .header-actions .search-box { flex: 2 1 260px; width: auto; }
     .modal-content { width: calc(100% - 24px) !important; max-width: calc(100% - 24px) !important; max-height: calc(100dvh - 24px) !important; margin: 12px; }
 }
@@ -1617,7 +1617,7 @@ input, select, textarea, button { max-width: 100%; }
     :root { --header-height: 58px; }
     .header { height: var(--header-height); padding: 8px 10px; }
     .logo h1 { font-size: 16px; }
-    .logo > i { display: none; }
+    .logo &gt; i { display: none; }
     .mobile-menu-toggle { width: 40px; height: 40px; }
     .time-display div:last-child { display: none; }
     .content { padding: 12px 10px !important; }
@@ -1629,11 +1629,11 @@ input, select, textarea, button { max-width: 100%; }
     .form-actions, .modal-footer { display: grid !important; grid-template-columns: 1fr; gap: 10px; }
     .form-actions button, .modal-footer button { width: 100% !important; }
     .header-actions { display: grid !important; grid-template-columns: 1fr; }
-    .header-actions > *, .header-actions .search-box { width: 100% !important; }
+    .header-actions &gt; *, .header-actions .search-box { width: 100% !important; }
 
     /* Tabelas tornam-se cartões no celular */
     .table-container { overflow: visible; background: transparent; box-shadow: none; padding: 0; }
-    .table-container h3, .table-container h4, .table-container > .header-actions { padding-left: 0; padding-right: 0; }
+    .table-container h3, .table-container h4, .table-container &gt; .header-actions { padding-left: 0; padding-right: 0; }
     .table-container table,
     .table-container thead,
     .table-container tbody,
@@ -1674,8 +1674,8 @@ input, select, textarea, button { max-width: 100%; }
     .table-container tbody td[colspan]::before { content: none; }
     .table-container tbody td .actions,
     .table-container tbody td.actions { justify-content: flex-end; width: 100%; }
-    .table-container tbody td[data-label="Ações"] { grid-template-columns: 1fr; }
-    .table-container tbody td[data-label="Ações"]::before { margin-bottom: 4px; }
+    .table-container tbody td[data-label=&quot;Ações&quot;] { grid-template-columns: 1fr; }
+    .table-container tbody td[data-label=&quot;Ações&quot;]::before { margin-bottom: 4px; }
 
     .payment-options, .payment-mode-buttons { display: grid !important; grid-template-columns: 1fr; }
     .summary-row { gap: 12px; align-items: flex-start; }
@@ -1839,3 +1839,77 @@ input, select, textarea, button { max-width: 100%; }
 
 .cell-primary { font-weight: 600; }
 .cell-secondary { margin-top: 3px; font-size: 11px; color: #6c757d; }
+
+/* =========================================================
+   V6 - COMPACTAÇÃO DAS TABELAS DE FORNECEDORES E SERVIÇOS
+   Corrige altura excessiva causada pela quebra dos botões.
+   ========================================================= */
+@media (min-width: 681px) {
+    /* Padding vertical mais equilibrado nas linhas */
+    #suppliers-table tbody td,
+    #services-table tbody td {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    /* Reserva espaço real para a coluna de ações */
+    #suppliers-table th:last-child,
+    #suppliers-table td:last-child {
+        width: 150px;
+        min-width: 150px;
+        max-width: 150px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #services-table th:last-child,
+    #services-table td:last-child {
+        width: 158px;
+        min-width: 158px;
+        max-width: 158px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    /* Fornecedores: três botões em uma única linha */
+    #suppliers-table td:last-child .actions,
+    #suppliers-table td.actions {
+        display: grid !important;
+        grid-template-columns: repeat(3, 34px);
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    /* Serviços: seis botões em duas linhas de três */
+    #services-table td:last-child .actions,
+    #services-table td.actions {
+        display: grid !important;
+        grid-template-columns: repeat(3, 34px);
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    #suppliers-table .actions &gt; *,
+    #services-table .actions &gt; * {
+        margin: 0 !important;
+    }
+
+    /* Mantém o conteúdo centralizado verticalmente */
+    #suppliers-table tbody tr,
+    #services-table tbody tr {
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    #suppliers-table tbody td,
+    #services-table tbody td {
+        vertical-align: middle !important;
+    }
+}
+</pre></body></html>
